@@ -47,6 +47,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // ISP Theme Colors
+        "tech-blue": "hsl(var(--tech-blue))",
+        "tech-blue-dark": "hsl(var(--tech-blue-dark))",
+        "success-green": "hsl(var(--success-green))",
+        "success-green-light": "hsl(var(--success-green-light))",
+        "warning-orange": "hsl(var(--warning-orange))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
