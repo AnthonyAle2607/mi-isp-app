@@ -1,7 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Bell, User, LogOut, Wifi } from "lucide-react";
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
   return (
     <header className="bg-card/50 backdrop-blur-lg border-b border-border sticky top-0 z-50">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -23,15 +33,15 @@ const Header = () => {
           
           <div className="flex items-center space-x-3">
             <div className="text-right">
-              <p className="text-sm font-medium text-foreground">Juan Pérez</p>
-              <p className="text-xs text-muted-foreground">Plan Premium 100MB</p>
+              <p className="text-sm font-medium text-foreground">{user?.email || 'Cliente ISP'}</p>
+              <p className="text-xs text-muted-foreground">Plan Premium</p>
             </div>
             <Button variant="ghost" size="icon">
               <User className="h-5 w-5" />
             </Button>
           </div>
           
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={handleSignOut}>
             <LogOut className="h-5 w-5" />
           </Button>
         </div>

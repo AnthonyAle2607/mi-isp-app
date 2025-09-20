@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Layout/Header";
 import StatsCard from "@/components/Dashboard/StatsCard";
 import SpeedTest from "@/components/Dashboard/SpeedTest";
 import PaymentHistory from "@/components/Dashboard/PaymentHistory";
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Wifi, 
   DollarSign, 
@@ -13,6 +16,26 @@ import {
 } from "lucide-react";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-primary flex items-center justify-center">
+        <div className="text-white text-xl">Cargando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       <Header />
