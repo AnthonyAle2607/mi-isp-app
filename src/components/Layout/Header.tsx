@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -34,12 +34,25 @@ const Header = () => {
           <div className="flex items-center space-x-3">
             <div className="text-right">
               <p className="text-sm font-medium text-foreground">{user?.email || 'Cliente ISP'}</p>
-              <p className="text-xs text-muted-foreground">Plan Premium</p>
+              <p className="text-xs text-muted-foreground">
+                {isAdmin ? 'Administrador' : 'Plan Premium'}
+              </p>
             </div>
             <Button variant="ghost" size="icon">
               <User className="h-5 w-5" />
             </Button>
           </div>
+          
+          {isAdmin && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => navigate('/admin')}
+              className="text-white border-white/20 hover:bg-white/20"
+            >
+              Panel Admin
+            </Button>
+          )}
           
           <Button variant="ghost" size="icon" onClick={handleSignOut}>
             <LogOut className="h-5 w-5" />
