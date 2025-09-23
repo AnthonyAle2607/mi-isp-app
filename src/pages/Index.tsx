@@ -4,6 +4,7 @@ import Header from "@/components/Layout/Header";
 import StatsCard from "@/components/Dashboard/StatsCard";
 import SpeedTest from "@/components/Dashboard/SpeedTest";
 import PaymentHistory from "@/components/Dashboard/PaymentHistory";
+import DataUsage from "@/components/Dashboard/DataUsage";
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Wifi, 
@@ -12,7 +13,8 @@ import {
   AlertTriangle,
   TrendingUp,
   Download,
-  Upload
+  Upload,
+  UserX
 } from "lucide-react";
 
 const Index = () => {
@@ -118,6 +120,7 @@ const Index = () => {
 
           <div className="space-y-6">
             <PaymentHistory />
+            <DataUsage />
             
             {/* Quick Actions */}
             <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6">
@@ -149,6 +152,16 @@ const Index = () => {
                     <div>
                       <p className="font-medium text-foreground">Reportar Incidencia</p>
                       <p className="text-sm text-muted-foreground">¿Tienes problemas? Repórtalo aquí</p>
+                    </div>
+                  </div>
+                </button>
+                
+                <button className="w-full p-3 text-left bg-destructive/10 hover:bg-destructive/20 rounded-lg border border-destructive/30 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <UserX className="h-5 w-5 text-destructive" />
+                    <div>
+                      <p className="font-medium text-destructive">Retirar Servicio</p>
+                      <p className="text-sm text-muted-foreground">Cancelar tu plan de internet</p>
                     </div>
                   </div>
                 </button>
