@@ -145,6 +145,31 @@ const Index = () => {
                     </div>
                   </div>
                 </button>
+
+                {/* Payment Methods Section */}
+                <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center">
+                    <DollarSign className="h-4 w-4 mr-2 text-primary" />
+                    Métodos de Pago
+                  </h4>
+                  <div className="space-y-2">
+                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                      <p className="text-sm font-medium text-foreground">Transferencia Bancaria</p>
+                    </button>
+                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                      <p className="text-sm font-medium text-foreground">PSE</p>
+                    </button>
+                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                      <p className="text-sm font-medium text-foreground">Nequi</p>
+                    </button>
+                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                      <p className="text-sm font-medium text-foreground">Daviplata</p>
+                    </button>
+                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                      <p className="text-sm font-medium text-foreground">Efecty</p>
+                    </button>
+                  </div>
+                </div>
                 
                 <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
                   <div className="flex items-center space-x-3">

@@ -3,9 +3,8 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart3, TrendingUp, Download, Upload } from "lucide-react";
 
 const DataUsage = () => {
-  const monthlyQuota = 500; // GB
   const usedData = 327.5; // GB
-  const usagePercentage = (usedData / monthlyQuota) * 100;
+  const currentMonth = new Date().toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
 
   const dailyUsage = [
     { day: 'Lun', download: 12.3, upload: 2.1 },
@@ -34,32 +33,22 @@ const DataUsage = () => {
         <div className="bg-secondary/20 rounded-lg p-4 border border-border/30">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm font-medium text-foreground">Consumo del Mes</p>
+              <p className="text-sm font-medium text-foreground">Consumo de {currentMonth}</p>
               <p className="text-2xl font-bold text-foreground">
-                {usedData} GB <span className="text-sm font-normal text-muted-foreground">/ {monthlyQuota} GB</span>
+                {usedData} GB <span className="text-sm font-normal text-success-green">Ilimitado</span>
               </p>
             </div>
-            <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-              usagePercentage >= 90 ? 'bg-destructive/10 text-destructive' :
-              usagePercentage >= 70 ? 'bg-warning-orange/10 text-warning-orange' :
-              'bg-success-green/10 text-success-green'
-            }`}>
-              {usagePercentage.toFixed(1)}%
+            <div className="px-2 py-1 rounded-full text-xs font-medium bg-success-green/10 text-success-green">
+              Sin Límites
             </div>
           </div>
           
-          <Progress 
-            value={usagePercentage} 
-            className={`h-3 ${
-              usagePercentage >= 90 ? '[&>div]:bg-destructive' :
-              usagePercentage >= 70 ? '[&>div]:bg-warning-orange' :
-              '[&>div]:bg-success-green'
-            }`}
-          />
-          
-          <p className="text-xs text-muted-foreground mt-2">
-            Quedan {(monthlyQuota - usedData).toFixed(1)} GB disponibles
-          </p>
+          <div className="bg-success-green/10 rounded-lg p-3 border border-success-green/20">
+            <p className="text-sm text-success-green font-medium">✓ Internet Ilimitado</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Disfruta de internet sin restricciones de datos
+            </p>
+          </div>
         </div>
 
         {/* Weekly Usage Breakdown */}
@@ -97,8 +86,8 @@ const DataUsage = () => {
             <div className="flex-1">
               <p className="text-sm font-medium text-foreground">Insight del Mes</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Tu consumo promedio diario es de 10.9 GB. Al ritmo actual, usarás aproximadamente 
-                {Math.round((usedData / new Date().getDate()) * 30)} GB este mes.
+                Tu consumo promedio diario es de 10.9 GB. Con internet ilimitado, 
+                puedes usar toda la velocidad que necesites sin preocupaciones.
               </p>
             </div>
           </div>
