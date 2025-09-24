@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Settings, BarChart3, Shield, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import EditUserDialog from '@/components/Dashboard/EditUserDialog';
 
 interface Profile {
   id: string;
@@ -195,6 +196,11 @@ const Admin = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
+                          <EditUserDialog 
+                            profile={profile} 
+                            userRole={role}
+                            onUpdate={fetchAllData}
+                          />
                           {role !== 'admin' && (
                             <Button
                               size="sm"
