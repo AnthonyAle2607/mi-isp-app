@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, User, LogOut, Wifi } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import ProfileDialog from './ProfileDialog';
 
 const Header = () => {
   const { user, isAdmin, signOut } = useAuth();
@@ -38,9 +39,7 @@ const Header = () => {
                 {isAdmin ? 'Administrador' : 'Plan Premium'}
               </p>
             </div>
-            <Button variant="ghost" size="icon">
-              <User className="h-5 w-5" />
-            </Button>
+            <ProfileDialog />
           </div>
           
           {isAdmin && (

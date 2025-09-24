@@ -5,7 +5,6 @@ import StatsCard from "@/components/Dashboard/StatsCard";
 import SpeedTest from "@/components/Dashboard/SpeedTest";
 import PaymentHistory from "@/components/Dashboard/PaymentHistory";
 import DataUsage from "@/components/Dashboard/DataUsage";
-import EditProfile from "@/components/Dashboard/EditProfile";
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Wifi, 
@@ -120,7 +119,6 @@ const Index = () => {
           </div>
 
           <div className="space-y-6">
-            <EditProfile />
             <PaymentHistory />
             <DataUsage />
             
