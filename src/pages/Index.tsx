@@ -120,76 +120,80 @@ const Index = () => {
 
           <div className="space-y-6">
             <PaymentHistory />
-            <DataUsage />
             
-            {/* Quick Actions */}
-            <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Acciones Rápidas</h3>
-              <div className="space-y-3">
-                <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <DollarSign className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-foreground">Ver Facturación</p>
-                      <p className="text-sm text-muted-foreground">Consulta tu historial de facturas</p>
+            {/* Data Usage and Quick Actions Side by Side */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <DataUsage />
+              
+              {/* Quick Actions */}
+              <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Acciones Rápidas</h3>
+                <div className="space-y-3">
+                  <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <DollarSign className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium text-foreground">Ver Facturación</p>
+                        <p className="text-sm text-muted-foreground">Consulta tu historial de facturas</p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-                
-                <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <Wifi className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-foreground">Cambiar Plan</p>
-                      <p className="text-sm text-muted-foreground">Explora nuestros planes disponibles</p>
+                  </button>
+                  
+                  <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <Wifi className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium text-foreground">Cambiar Plan</p>
+                        <p className="text-sm text-muted-foreground">Explora nuestros planes disponibles</p>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
 
-                {/* Payment Methods Section */}
-                <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
-                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center">
-                    <DollarSign className="h-4 w-4 mr-2 text-primary" />
-                    Métodos de Pago
-                  </h4>
-                  <div className="space-y-2">
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Transferencia Bancaria</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">PSE</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Nequi</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Daviplata</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Efecty</p>
-                    </button>
+                  {/* Payment Methods Section */}
+                  <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
+                    <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center">
+                      <DollarSign className="h-4 w-4 mr-2 text-primary" />
+                      Métodos de Pago
+                    </h4>
+                    <div className="space-y-2">
+                      <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                        <p className="text-sm font-medium text-foreground">Transferencia Bancaria</p>
+                      </button>
+                      <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                        <p className="text-sm font-medium text-foreground">PSE</p>
+                      </button>
+                      <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                        <p className="text-sm font-medium text-foreground">Nequi</p>
+                      </button>
+                      <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                        <p className="text-sm font-medium text-foreground">Daviplata</p>
+                      </button>
+                      <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
+                        <p className="text-sm font-medium text-foreground">Efecty</p>
+                      </button>
+                    </div>
                   </div>
+                  
+                  <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <AlertTriangle className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium text-foreground">Reportar Incidencia</p>
+                        <p className="text-sm text-muted-foreground">¿Tienes problemas? Repórtalo aquí</p>
+                      </div>
+                    </div>
+                  </button>
+                  
+                  <button className="w-full p-3 text-left bg-destructive/10 hover:bg-destructive/20 rounded-lg border border-destructive/30 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <UserX className="h-5 w-5 text-destructive" />
+                      <div>
+                        <p className="font-medium text-destructive">Retirar Servicio</p>
+                        <p className="text-sm text-muted-foreground">Cancelar tu plan de internet</p>
+                      </div>
+                    </div>
+                  </button>
                 </div>
-                
-                <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <AlertTriangle className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="font-medium text-foreground">Reportar Incidencia</p>
-                      <p className="text-sm text-muted-foreground">¿Tienes problemas? Repórtalo aquí</p>
-                    </div>
-                  </div>
-                </button>
-                
-                <button className="w-full p-3 text-left bg-destructive/10 hover:bg-destructive/20 rounded-lg border border-destructive/30 transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <UserX className="h-5 w-5 text-destructive" />
-                    <div>
-                      <p className="font-medium text-destructive">Retirar Servicio</p>
-                      <p className="text-sm text-muted-foreground">Cancelar tu plan de internet</p>
-                    </div>
-                  </div>
-                </button>
               </div>
             </div>
           </div>

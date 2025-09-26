@@ -13,6 +13,7 @@ interface ProfileData {
   full_name: string;
   phone: string;
   address: string;
+  installation_date: string;
 }
 
 const ProfileDialog = () => {
@@ -24,7 +25,8 @@ const ProfileDialog = () => {
   const [profileData, setProfileData] = useState<ProfileData>({
     full_name: '',
     phone: '',
-    address: ''
+    address: '',
+    installation_date: ''
   });
 
   useEffect(() => {
@@ -38,7 +40,7 @@ const ProfileDialog = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, phone, address')
+        .select('full_name, phone, address, installation_date')
         .eq('user_id', user?.id)
         .single();
 
@@ -50,7 +52,8 @@ const ProfileDialog = () => {
         setProfileData({
           full_name: data.full_name || '',
           phone: data.phone || '',
-          address: data.address || ''
+          address: data.address || '',
+          installation_date: data.installation_date || ''
         });
       }
     } catch (error) {
@@ -158,6 +161,16 @@ const ProfileDialog = () => {
                 onChange={(e) => handleInputChange('address', e.target.value)}
                 placeholder="Ingresa tu dirección completa"
                 rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="dialog_installation_date">Fecha de Instalación</Label>
+              <Input
+                id="dialog_installation_date"
+                type="date"
+                value={profileData.installation_date}
+                onChange={(e) => handleInputChange('installation_date', e.target.value)}
               />
             </div>
 
