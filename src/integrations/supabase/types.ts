@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      payment_receipts: {
+        Row: {
+          admin_notes: string | null
+          amount: number | null
+          created_at: string
+          id: string
+          payment_date: string | null
+          receipt_url: string
+          updated_at: string
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount?: number | null
+          created_at?: string
+          id?: string
+          payment_date?: string | null
+          receipt_url: string
+          updated_at?: string
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number | null
+          created_at?: string
+          id?: string
+          payment_date?: string | null
+          receipt_url?: string
+          updated_at?: string
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           account_status: string | null

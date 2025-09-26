@@ -4,6 +4,7 @@ import Header from "@/components/Layout/Header";
 import StatsCard from "@/components/Dashboard/StatsCard";
 import SpeedTest from "@/components/Dashboard/SpeedTest";
 import PaymentHistory from "@/components/Dashboard/PaymentHistory";
+import PaymentReceipt from "@/components/Dashboard/PaymentReceipt";
 import DataUsage from "@/components/Dashboard/DataUsage";
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -116,12 +117,7 @@ const Index = () => {
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="space-y-6">
-            <PaymentHistory />
-            <DataUsage />
-            
             {/* Quick Actions */}
             <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-foreground mb-4">Acciones Rápidas</h3>
@@ -192,6 +188,12 @@ const Index = () => {
                 </button>
               </div>
             </div>
+          </div>
+
+          <div className="space-y-6">
+            <PaymentHistory />
+            <DataUsage />
+            <PaymentReceipt />
           </div>
         </div>
       </main>
