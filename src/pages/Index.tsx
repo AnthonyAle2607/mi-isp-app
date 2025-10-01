@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Layout/Header";
 import StatsCard from "@/components/Dashboard/StatsCard";
 import SpeedTest from "@/components/Dashboard/SpeedTest";
+import NetworkInfo from "@/components/Dashboard/NetworkInfo";
 import PaymentHistory from "@/components/Dashboard/PaymentHistory";
 import PaymentReceipt from "@/components/Dashboard/PaymentReceipt";
 import DataUsage from "@/components/Dashboard/DataUsage";
@@ -93,6 +94,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
             <SpeedTest />
+            <NetworkInfo />
             
             {/* Network Status */}
             <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6">

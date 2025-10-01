@@ -15,16 +15,15 @@ const SpeedTest = () => {
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
-  // Measure ping latency
+  // Measure ping latency using Cloudflare's endpoint
   const measurePing = async (): Promise<number> => {
-    const iterations = 5;
+    const iterations = 3;
     let totalPing = 0;
 
     for (let i = 0; i < iterations; i++) {
       const start = performance.now();
       try {
-        await fetch('https://www.google.com/favicon.ico', { 
-          method: 'HEAD',
+        await fetch('https://speed.cloudflare.com/__down?bytes=0', { 
           cache: 'no-cache'
         });
         const end = performance.now();
@@ -39,12 +38,12 @@ const SpeedTest = () => {
 
   // Measure download speed
   const measureDownload = async (): Promise<number> => {
-    const fileSizeMB = 5; // 5MB test file
+    const fileSizeMB = 10; // 10MB test file
     const testUrl = `https://speed.cloudflare.com/__down?bytes=${fileSizeMB * 1024 * 1024}`;
     
     const start = performance.now();
     try {
-      const response = await fetch(testUrl);
+      const response = await fetch(testUrl, { cache: 'no-cache' });
       await response.arrayBuffer();
       const end = performance.now();
       
@@ -60,7 +59,7 @@ const SpeedTest = () => {
 
   // Measure upload speed
   const measureUpload = async (): Promise<number> => {
-    const fileSizeMB = 2; // 2MB test data
+    const fileSizeMB = 5; // 5MB test data
     const testData = new ArrayBuffer(fileSizeMB * 1024 * 1024);
     const blob = new Blob([testData]);
     
@@ -68,7 +67,8 @@ const SpeedTest = () => {
     try {
       await fetch('https://speed.cloudflare.com/__up', {
         method: 'POST',
-        body: blob
+        body: blob,
+        cache: 'no-cache'
       });
       const end = performance.now();
       
