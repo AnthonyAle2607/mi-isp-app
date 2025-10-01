@@ -17,33 +17,48 @@ const NetworkInfo = () => {
     const fetchIPInfo = async () => {
       console.log('🔍 Intentando obtener información de IP...');
       
-      // Try multiple APIs in sequence
+      // Try multiple APIs with different methods for mobile compatibility
       const apis = [
         { url: 'https://api.ipify.org?format=json', name: 'ipify' },
         { url: 'https://api64.ipify.org?format=json', name: 'ipify64' },
-        { url: 'https://api.my-ip.io/v2/ip.json', name: 'my-ip.io' },
-        { url: 'https://ipapi.co/json/', name: 'ipapi', field: 'ip' }
+        { url: 'https://icanhazip.com', name: 'icanhazip', isText: true },
+        { url: 'https://ipinfo.io/json', name: 'ipinfo' },
+        { url: 'https://ifconfig.me/ip', name: 'ifconfig', isText: true }
       ];
 
       for (const api of apis) {
         try {
           console.log(`📡 Probando API: ${api.name}`);
+          
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+          
           const response = await fetch(api.url, {
+            method: 'GET',
+            signal: controller.signal,
             headers: {
-              'Accept': 'application/json'
+              'Accept': api.isText ? 'text/plain' : 'application/json'
             }
           });
+          
+          clearTimeout(timeoutId);
           
           if (!response.ok) {
             console.log(`❌ ${api.name} falló con status: ${response.status}`);
             continue;
           }
           
-          const data = await response.json();
-          const ip = api.field ? data[api.field] : data.ip;
+          let ip: string;
           
-          if (!ip) {
-            console.log(`❌ ${api.name} no devolvió IP`);
+          if (api.isText) {
+            ip = (await response.text()).trim();
+          } else {
+            const data = await response.json();
+            ip = data.ip || data.query || '';
+          }
+          
+          if (!ip || ip.length < 7) {
+            console.log(`❌ ${api.name} no devolvió IP válida`);
             continue;
           }
           

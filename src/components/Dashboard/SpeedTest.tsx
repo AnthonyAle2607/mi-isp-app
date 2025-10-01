@@ -25,10 +25,19 @@ const SpeedTest = () => {
       const start = performance.now();
       try {
         console.log(`🏓 Ping intento ${i + 1}/${iterations}...`);
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        
         const response = await fetch('https://speed.cloudflare.com/__down?bytes=0', { 
+          method: 'GET',
           cache: 'no-cache',
-          mode: 'cors'
+          mode: 'cors',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+        
         const end = performance.now();
         const pingTime = end - start;
         console.log(`✅ Ping ${i + 1}: ${pingTime.toFixed(2)}ms`);
@@ -36,12 +45,12 @@ const SpeedTest = () => {
         successfulPings++;
       } catch (error) {
         console.error(`❌ Ping ${i + 1} falló:`, error);
-        totalPing += 100; // fallback if request fails
+        // Don't add fallback, just skip this iteration
       }
     }
 
-    const avgPing = successfulPings > 0 ? totalPing / iterations : 100;
-    console.log(`📊 Ping promedio: ${avgPing.toFixed(2)}ms`);
+    const avgPing = successfulPings > 0 ? totalPing / successfulPings : 100;
+    console.log(`📊 Ping promedio: ${avgPing.toFixed(2)}ms (${successfulPings}/${iterations} exitosos)`);
     return avgPing;
   };
 
@@ -53,10 +62,17 @@ const SpeedTest = () => {
     console.log(`📥 Descargando ${fileSizeMB}MB para medir velocidad...`);
     const start = performance.now();
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
       const response = await fetch(testUrl, { 
+        method: 'GET',
         cache: 'no-cache',
-        mode: 'cors'
+        mode: 'cors',
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         console.error(`❌ Respuesta de descarga falló: ${response.status}`);
@@ -87,12 +103,18 @@ const SpeedTest = () => {
     
     const start = performance.now();
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
       const response = await fetch('https://speed.cloudflare.com/__up', {
         method: 'POST',
         body: blob,
         cache: 'no-cache',
-        mode: 'cors'
+        mode: 'cors',
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         console.error(`❌ Respuesta de subida falló: ${response.status}`);
