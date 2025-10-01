@@ -8,37 +8,116 @@ import { useToast } from "@/hooks/use-toast";
 const SpeedTest = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState({
-    download: 87.5,
-    upload: 45.2,
-    ping: 12
+    download: 0,
+    upload: 0,
+    ping: 0
   });
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
-  const runSpeedTest = () => {
+  // Measure ping latency
+  const measurePing = async (): Promise<number> => {
+    const iterations = 5;
+    let totalPing = 0;
+
+    for (let i = 0; i < iterations; i++) {
+      const start = performance.now();
+      try {
+        await fetch('https://www.google.com/favicon.ico', { 
+          method: 'HEAD',
+          cache: 'no-cache'
+        });
+        const end = performance.now();
+        totalPing += (end - start);
+      } catch {
+        totalPing += 100; // fallback if request fails
+      }
+    }
+
+    return totalPing / iterations;
+  };
+
+  // Measure download speed
+  const measureDownload = async (): Promise<number> => {
+    const fileSizeMB = 5; // 5MB test file
+    const testUrl = `https://speed.cloudflare.com/__down?bytes=${fileSizeMB * 1024 * 1024}`;
+    
+    const start = performance.now();
+    try {
+      const response = await fetch(testUrl);
+      await response.arrayBuffer();
+      const end = performance.now();
+      
+      const durationSeconds = (end - start) / 1000;
+      const speedMbps = (fileSizeMB * 8) / durationSeconds; // Convert to Mbps
+      
+      return speedMbps;
+    } catch (error) {
+      console.error('Download test failed:', error);
+      return 0;
+    }
+  };
+
+  // Measure upload speed
+  const measureUpload = async (): Promise<number> => {
+    const fileSizeMB = 2; // 2MB test data
+    const testData = new ArrayBuffer(fileSizeMB * 1024 * 1024);
+    const blob = new Blob([testData]);
+    
+    const start = performance.now();
+    try {
+      await fetch('https://speed.cloudflare.com/__up', {
+        method: 'POST',
+        body: blob
+      });
+      const end = performance.now();
+      
+      const durationSeconds = (end - start) / 1000;
+      const speedMbps = (fileSizeMB * 8) / durationSeconds; // Convert to Mbps
+      
+      return speedMbps;
+    } catch (error) {
+      console.error('Upload test failed:', error);
+      return 0;
+    }
+  };
+
+  const runSpeedTest = async () => {
     setIsRunning(true);
     setProgress(0);
     
-    // Simulate speed test
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsRunning(false);
-          setResults({
-            download: Math.random() * 50 + 50,
-            upload: Math.random() * 30 + 20,
-            ping: Math.random() * 20 + 5
-          });
-          toast({
-            title: "Prueba de velocidad completada",
-            description: "Los resultados se han actualizado correctamente",
-          });
-          return 100;
-        }
-        return prev + 2;
+    try {
+      // Step 1: Measure Ping (0-33%)
+      setProgress(10);
+      const ping = await measurePing();
+      setResults(prev => ({ ...prev, ping: Math.round(ping) }));
+      setProgress(33);
+      
+      // Step 2: Measure Download (33-66%)
+      setProgress(40);
+      const download = await measureDownload();
+      setResults(prev => ({ ...prev, download: Math.round(download * 10) / 10 }));
+      setProgress(66);
+      
+      // Step 3: Measure Upload (66-100%)
+      setProgress(75);
+      const upload = await measureUpload();
+      setResults(prev => ({ ...prev, upload: Math.round(upload * 10) / 10 }));
+      setProgress(100);
+      
+      toast({
+        title: "Prueba de velocidad completada",
+        description: "Los resultados se han actualizado correctamente",
       });
-    }, 100);
+    } catch (error) {
+      toast({
+        title: "Error en la prueba",
+        description: "No se pudo completar la prueba de velocidad",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
