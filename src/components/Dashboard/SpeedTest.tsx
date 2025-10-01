@@ -19,100 +19,139 @@ const SpeedTest = () => {
   const measurePing = async (): Promise<number> => {
     const iterations = 3;
     let totalPing = 0;
+    let successfulPings = 0;
 
     for (let i = 0; i < iterations; i++) {
       const start = performance.now();
       try {
-        await fetch('https://speed.cloudflare.com/__down?bytes=0', { 
-          cache: 'no-cache'
+        console.log(`🏓 Ping intento ${i + 1}/${iterations}...`);
+        const response = await fetch('https://speed.cloudflare.com/__down?bytes=0', { 
+          cache: 'no-cache',
+          mode: 'cors'
         });
         const end = performance.now();
-        totalPing += (end - start);
-      } catch {
+        const pingTime = end - start;
+        console.log(`✅ Ping ${i + 1}: ${pingTime.toFixed(2)}ms`);
+        totalPing += pingTime;
+        successfulPings++;
+      } catch (error) {
+        console.error(`❌ Ping ${i + 1} falló:`, error);
         totalPing += 100; // fallback if request fails
       }
     }
 
-    return totalPing / iterations;
+    const avgPing = successfulPings > 0 ? totalPing / iterations : 100;
+    console.log(`📊 Ping promedio: ${avgPing.toFixed(2)}ms`);
+    return avgPing;
   };
 
   // Measure download speed
   const measureDownload = async (): Promise<number> => {
-    const fileSizeMB = 10; // 10MB test file
+    const fileSizeMB = 5; // 5MB test file - reduced for mobile
     const testUrl = `https://speed.cloudflare.com/__down?bytes=${fileSizeMB * 1024 * 1024}`;
     
+    console.log(`📥 Descargando ${fileSizeMB}MB para medir velocidad...`);
     const start = performance.now();
     try {
-      const response = await fetch(testUrl, { cache: 'no-cache' });
+      const response = await fetch(testUrl, { 
+        cache: 'no-cache',
+        mode: 'cors'
+      });
+      
+      if (!response.ok) {
+        console.error(`❌ Respuesta de descarga falló: ${response.status}`);
+        return 0;
+      }
+      
       await response.arrayBuffer();
       const end = performance.now();
       
       const durationSeconds = (end - start) / 1000;
       const speedMbps = (fileSizeMB * 8) / durationSeconds; // Convert to Mbps
       
+      console.log(`✅ Descarga completada en ${durationSeconds.toFixed(2)}s = ${speedMbps.toFixed(2)} Mbps`);
       return speedMbps;
     } catch (error) {
-      console.error('Download test failed:', error);
+      console.error('❌ Test de descarga falló:', error);
       return 0;
     }
   };
 
   // Measure upload speed
   const measureUpload = async (): Promise<number> => {
-    const fileSizeMB = 5; // 5MB test data
+    const fileSizeMB = 2; // 2MB test data - reduced for mobile
+    console.log(`📤 Subiendo ${fileSizeMB}MB para medir velocidad...`);
+    
     const testData = new ArrayBuffer(fileSizeMB * 1024 * 1024);
     const blob = new Blob([testData]);
     
     const start = performance.now();
     try {
-      await fetch('https://speed.cloudflare.com/__up', {
+      const response = await fetch('https://speed.cloudflare.com/__up', {
         method: 'POST',
         body: blob,
-        cache: 'no-cache'
+        cache: 'no-cache',
+        mode: 'cors'
       });
+      
+      if (!response.ok) {
+        console.error(`❌ Respuesta de subida falló: ${response.status}`);
+        return 0;
+      }
+      
       const end = performance.now();
       
       const durationSeconds = (end - start) / 1000;
       const speedMbps = (fileSizeMB * 8) / durationSeconds; // Convert to Mbps
       
+      console.log(`✅ Subida completada en ${durationSeconds.toFixed(2)}s = ${speedMbps.toFixed(2)} Mbps`);
       return speedMbps;
     } catch (error) {
-      console.error('Upload test failed:', error);
+      console.error('❌ Test de subida falló:', error);
       return 0;
     }
   };
 
   const runSpeedTest = async () => {
+    console.log('🚀 Iniciando prueba de velocidad...');
     setIsRunning(true);
     setProgress(0);
     
     try {
       // Step 1: Measure Ping (0-33%)
+      console.log('📊 Midiendo ping...');
       setProgress(10);
       const ping = await measurePing();
+      console.log(`✅ Ping: ${ping}ms`);
       setResults(prev => ({ ...prev, ping: Math.round(ping) }));
       setProgress(33);
       
       // Step 2: Measure Download (33-66%)
+      console.log('📥 Midiendo velocidad de descarga...');
       setProgress(40);
       const download = await measureDownload();
+      console.log(`✅ Descarga: ${download} Mbps`);
       setResults(prev => ({ ...prev, download: Math.round(download * 10) / 10 }));
       setProgress(66);
       
       // Step 3: Measure Upload (66-100%)
+      console.log('📤 Midiendo velocidad de subida...');
       setProgress(75);
       const upload = await measureUpload();
+      console.log(`✅ Subida: ${upload} Mbps`);
       setResults(prev => ({ ...prev, upload: Math.round(upload * 10) / 10 }));
       setProgress(100);
       
+      console.log('✅ Prueba de velocidad completada exitosamente');
       toast({
         title: "Prueba de velocidad completada",
         description: "Los resultados se han actualizado correctamente",
       });
     } catch (error) {
+      console.error('❌ Error en la prueba de velocidad:', error);
       toast({
         title: "Error en la prueba",
-        description: "No se pudo completar la prueba de velocidad",
+        description: "No se pudo completar la prueba de velocidad. Revisa la consola para más detalles.",
         variant: "destructive"
       });
     } finally {

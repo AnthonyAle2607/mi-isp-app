@@ -15,28 +15,62 @@ const NetworkInfo = () => {
 
   useEffect(() => {
     const fetchIPInfo = async () => {
-      try {
-        // Try to get IPv6 first
-        const ipv6Response = await fetch('https://api64.ipify.org?format=json');
-        const ipv6Data = await ipv6Response.json();
-        const ip = ipv6Data.ip;
-        
-        // Check if it's IPv6 (contains colons)
-        const isIPv6 = ip.includes(':');
-        
-        setIpInfo({
-          ip,
-          isIPv6,
-          loading: false
-        });
-      } catch (error) {
-        console.error('Failed to fetch IP info:', error);
-        setIpInfo({
-          ip: "No disponible",
-          isIPv6: false,
-          loading: false
-        });
+      console.log('🔍 Intentando obtener información de IP...');
+      
+      // Try multiple APIs in sequence
+      const apis = [
+        { url: 'https://api.ipify.org?format=json', name: 'ipify' },
+        { url: 'https://api64.ipify.org?format=json', name: 'ipify64' },
+        { url: 'https://api.my-ip.io/v2/ip.json', name: 'my-ip.io' },
+        { url: 'https://ipapi.co/json/', name: 'ipapi', field: 'ip' }
+      ];
+
+      for (const api of apis) {
+        try {
+          console.log(`📡 Probando API: ${api.name}`);
+          const response = await fetch(api.url, {
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            console.log(`❌ ${api.name} falló con status: ${response.status}`);
+            continue;
+          }
+          
+          const data = await response.json();
+          const ip = api.field ? data[api.field] : data.ip;
+          
+          if (!ip) {
+            console.log(`❌ ${api.name} no devolvió IP`);
+            continue;
+          }
+          
+          console.log(`✅ IP obtenida de ${api.name}: ${ip}`);
+          
+          // Check if it's IPv6 (contains colons)
+          const isIPv6 = ip.includes(':');
+          console.log(`🔍 Tipo de IP detectado: ${isIPv6 ? 'IPv6' : 'IPv4'}`);
+          
+          setIpInfo({
+            ip,
+            isIPv6,
+            loading: false
+          });
+          return; // Success, exit
+        } catch (error) {
+          console.error(`❌ Error con ${api.name}:`, error);
+        }
       }
+      
+      // All APIs failed
+      console.error('❌ Todas las APIs de IP fallaron');
+      setIpInfo({
+        ip: "No disponible",
+        isIPv6: false,
+        loading: false
+      });
     };
 
     fetchIPInfo();
