@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from "@/components/Layout/Header";
 import StatsCard from "@/components/Dashboard/StatsCard";
@@ -8,6 +8,7 @@ import PaymentHistory from "@/components/Dashboard/PaymentHistory";
 import PaymentReceipt from "@/components/Dashboard/PaymentReceipt";
 import DataUsage from "@/components/Dashboard/DataUsage";
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Wifi, 
   DollarSign, 
@@ -22,12 +23,43 @@ import {
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [profileData, setProfileData] = useState({
+    plan_type: 'basic',
+    contract_number: ''
+  });
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (user) {
+      fetchProfileData();
+    }
+  }, [user]);
+
+  const fetchProfileData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('plan_type, contract_number')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setProfileData({
+          plan_type: data.plan_type || 'basic',
+          contract_number: data.contract_number || 'No asignado'
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -57,8 +89,8 @@ const Index = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Plan Actual"
-            value="100 Mbps"
-            subtitle="Premium Fiber"
+            value={profileData.plan_type}
+            subtitle={`Contrato: ${profileData.contract_number}`}
             icon={<Wifi className="h-6 w-6" />}
             trend="up"
           />
