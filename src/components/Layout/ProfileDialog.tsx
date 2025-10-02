@@ -14,6 +14,7 @@ interface ProfileData {
   phone: string;
   address: string;
   installation_date: string;
+  contract_number: string;
 }
 
 const ProfileDialog = () => {
@@ -26,7 +27,8 @@ const ProfileDialog = () => {
     full_name: '',
     phone: '',
     address: '',
-    installation_date: ''
+    installation_date: '',
+    contract_number: ''
   });
 
   useEffect(() => {
@@ -40,7 +42,7 @@ const ProfileDialog = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, phone, address, installation_date')
+        .select('full_name, phone, address, installation_date, contract_number')
         .eq('user_id', user?.id)
         .single();
 
@@ -53,7 +55,8 @@ const ProfileDialog = () => {
           full_name: data.full_name || '',
           phone: data.phone || '',
           address: data.address || '',
-          installation_date: data.installation_date || ''
+          installation_date: data.installation_date || '',
+          contract_number: data.contract_number || ''
         });
       }
     } catch (error) {
@@ -174,7 +177,21 @@ const ProfileDialog = () => {
               />
             </div>
 
-            <Button 
+            <div className="space-y-2">
+              <Label htmlFor="dialog_contract_number">Número de Contrato</Label>
+              <Input
+                id="dialog_contract_number"
+                value={profileData.contract_number}
+                disabled
+                className="bg-muted"
+                placeholder="No asignado"
+              />
+              <p className="text-xs text-muted-foreground">
+                Este campo es asignado por el administrador
+              </p>
+            </div>
+
+            <Button
               onClick={handleSave} 
               disabled={loading}
               className="w-full"
