@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Settings, BarChart3, Shield, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from '@/components/Dashboard/EditUserDialog';
+import CreateUserDialog from '@/components/Dashboard/CreateUserDialog';
 
 interface Profile {
   id: string;
@@ -16,6 +17,8 @@ interface Profile {
   full_name: string;
   phone: string;
   address: string;
+  ip_address?: string;
+  contract_number?: string;
   plan_type: string;
   account_status: string;
   created_at: string;
@@ -163,10 +166,15 @@ const Admin = () => {
           <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Gestión de Usuarios</CardTitle>
-                <CardDescription>
-                  Administra todos los usuarios registrados en la plataforma
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Gestión de Usuarios</CardTitle>
+                    <CardDescription>
+                      Administra todos los usuarios registrados en la plataforma
+                    </CardDescription>
+                  </div>
+                  <CreateUserDialog onUserCreated={fetchAllData} />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -189,10 +197,12 @@ const Admin = () => {
                               {profile.account_status === 'active' ? 'Activo' : 'Inactivo'}
                             </Badge>
                           </div>
-                          <div className="text-sm text-muted-foreground mt-1">
-                            <p>Plan: {profile.plan_type || 'Sin plan'}</p>
-                            <p>Teléfono: {profile.phone || 'No registrado'}</p>
-                            <p>Dirección: {profile.address || 'No registrada'}</p>
+                          <div className="text-sm text-muted-foreground mt-1 space-y-1">
+                            <p><span className="font-medium">Plan:</span> {profile.plan_type || 'Sin plan'}</p>
+                            <p><span className="font-medium">IP:</span> {profile.ip_address || 'No asignada'}</p>
+                            <p><span className="font-medium">Contrato:</span> {profile.contract_number || 'Sin contrato'}</p>
+                            <p><span className="font-medium">Teléfono:</span> {profile.phone || 'No registrado'}</p>
+                            <p><span className="font-medium">Dirección:</span> {profile.address || 'No registrada'}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">

@@ -54,10 +54,12 @@ export type Database = {
         Row: {
           account_status: string | null
           address: string | null
+          contract_number: string | null
           created_at: string
           full_name: string | null
           id: string
           installation_date: string | null
+          ip_address: string | null
           phone: string | null
           plan_type: string | null
           updated_at: string
@@ -66,10 +68,12 @@ export type Database = {
         Insert: {
           account_status?: string | null
           address?: string | null
+          contract_number?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           installation_date?: string | null
+          ip_address?: string | null
           phone?: string | null
           plan_type?: string | null
           updated_at?: string
@@ -78,10 +82,12 @@ export type Database = {
         Update: {
           account_status?: string | null
           address?: string | null
+          contract_number?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
           installation_date?: string | null
+          ip_address?: string | null
           phone?: string | null
           plan_type?: string | null
           updated_at?: string

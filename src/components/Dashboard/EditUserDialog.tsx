@@ -16,6 +16,8 @@ interface Profile {
   full_name: string;
   phone: string;
   address: string;
+  ip_address?: string;
+  contract_number?: string;
   plan_type: string;
   account_status: string;
 }
@@ -35,6 +37,8 @@ const EditUserDialog = ({ profile, userRole, onUpdate }: EditUserDialogProps) =>
     full_name: profile.full_name || '',
     phone: profile.phone || '',
     address: profile.address || '',
+    ip_address: profile.ip_address || '',
+    contract_number: profile.contract_number || '',
     plan_type: profile.plan_type || 'basic',
     account_status: profile.account_status || 'active'
   });
@@ -44,6 +48,8 @@ const EditUserDialog = ({ profile, userRole, onUpdate }: EditUserDialogProps) =>
       full_name: profile.full_name || '',
       phone: profile.phone || '',
       address: profile.address || '',
+      ip_address: profile.ip_address || '',
+      contract_number: profile.contract_number || '',
       plan_type: profile.plan_type || 'basic',
       account_status: profile.account_status || 'active'
     });
@@ -184,6 +190,26 @@ const EditUserDialog = ({ profile, userRole, onUpdate }: EditUserDialogProps) =>
               onChange={(e) => handleInputChange('address', e.target.value)}
               placeholder="Dirección"
               rows={2}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_ip_address">Dirección IP</Label>
+            <Input
+              id="edit_ip_address"
+              value={formData.ip_address}
+              onChange={(e) => handleInputChange('ip_address', e.target.value)}
+              placeholder="192.168.1.100"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit_contract_number">Número de Contrato</Label>
+            <Input
+              id="edit_contract_number"
+              value={formData.contract_number}
+              onChange={(e) => handleInputChange('contract_number', e.target.value)}
+              placeholder="CTR-2024-001"
             />
           </div>
 
