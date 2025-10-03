@@ -27,16 +27,11 @@ const PaymentForm = ({ onClose, onSuccess }: PaymentFormProps) => {
   const { toast } = useToast();
 
   const banks = [
-    "Bancolombia",
-    "Banco de Bogotá",
-    "Davivienda",
-    "BBVA Colombia",
-    "Banco Popular",
-    "Banco Caja Social",
-    "Banco AV Villas",
-    "Banco Falabella",
-    "Banco Pichincha",
-    "Scotiabank Colpatria"
+    "Banco Provincial",
+    "Banplus",
+    "Banesco",
+    "BNC",
+    "BDV",
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
