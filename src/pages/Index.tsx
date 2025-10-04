@@ -7,6 +7,7 @@ import NetworkInfo from "@/components/Dashboard/NetworkInfo";
 import PaymentHistory from "@/components/Dashboard/PaymentHistory";
 import PaymentReceipt from "@/components/Dashboard/PaymentReceipt";
 import DataUsage from "@/components/Dashboard/DataUsage";
+import PaymentMethods from "@/components/Dashboard/PaymentMethods";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -123,29 +124,7 @@ const Index = () => {
         </div>
 
         {/* Payment Methods Section - Destacado */}
-        <div className="bg-card/50 backdrop-blur-sm border border-primary/30 rounded-lg p-6 shadow-lg">
-          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-            <DollarSign className="h-5 w-5 mr-2 text-primary" />
-            Métodos de Pago Disponibles
-          </h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-              <p className="font-medium text-foreground">Transferencia Bancaria</p>
-            </button>
-            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-              <p className="font-medium text-foreground">PSE</p>
-            </button>
-            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-              <p className="font-medium text-foreground">Nequi</p>
-            </button>
-            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-              <p className="font-medium text-foreground">Daviplata</p>
-            </button>
-            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
-              <p className="font-medium text-foreground">Efecty</p>
-            </button>
-          </div>
-        </div>
+        <PaymentMethods />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
