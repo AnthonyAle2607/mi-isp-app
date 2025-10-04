@@ -36,6 +36,7 @@ const PaymentMethods = () => {
         icon: Building2,
         details: [
           { label: 'Cuenta', value: '0191-0166-52-2100032181' },
+          { label: 'Banco', value: 'Banco Nacional de Credito' }
           { label: 'Pago Móvil', value: '(0416) 517 5255' },
           { label: 'Beneficiario', value: 'Silverdata C.A.' },
           { label: 'RIF', value: 'J-50057920-9' }
