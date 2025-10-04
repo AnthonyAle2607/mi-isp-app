@@ -122,6 +122,31 @@ const Index = () => {
           />
         </div>
 
+        {/* Payment Methods Section - Destacado */}
+        <div className="bg-card/50 backdrop-blur-sm border border-primary/30 rounded-lg p-6 shadow-lg">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+            <DollarSign className="h-5 w-5 mr-2 text-primary" />
+            Métodos de Pago Disponibles
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+              <p className="font-medium text-foreground">Transferencia Bancaria</p>
+            </button>
+            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+              <p className="font-medium text-foreground">PSE</p>
+            </button>
+            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+              <p className="font-medium text-foreground">Nequi</p>
+            </button>
+            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+              <p className="font-medium text-foreground">Daviplata</p>
+            </button>
+            <button className="p-4 text-center bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+              <p className="font-medium text-foreground">Efecty</p>
+            </button>
+          </div>
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="space-y-6">
@@ -175,31 +200,6 @@ const Index = () => {
                     </div>
                   </div>
                 </button>
-
-                {/* Payment Methods Section */}
-                <div className="bg-primary/5 rounded-lg p-3 border border-primary/20">
-                  <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center">
-                    <DollarSign className="h-4 w-4 mr-2 text-primary" />
-                    Métodos de Pago
-                  </h4>
-                  <div className="space-y-2">
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Transferencia Bancaria</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">PSE</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Nequi</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Daviplata</p>
-                    </button>
-                    <button className="w-full p-2 text-left bg-secondary/20 hover:bg-secondary/30 rounded border border-border/30 transition-colors">
-                      <p className="text-sm font-medium text-foreground">Efecty</p>
-                    </button>
-                  </div>
-                </div>
                 
                 <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
                   <div className="flex items-center space-x-3">
