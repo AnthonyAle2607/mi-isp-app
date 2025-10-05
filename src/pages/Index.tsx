@@ -77,17 +77,17 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
       <Header />
       
-      <main className="container mx-auto px-6 py-8 space-y-8">
+      <main className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Welcome Section */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Bienvenido a tu Portal ISP</h1>
-          <p className="text-muted-foreground">
+        <div className="space-y-1 sm:space-y-2">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Bienvenido a tu Portal ISP</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Gestiona tu conexión, pagos y servicios desde un solo lugar
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           <StatsCard
             title="Plan Actual"
             value={profileData.plan_type}
@@ -127,8 +127,8 @@ const Index = () => {
         <PaymentMethods />
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+          <div className="space-y-4 sm:space-y-6">
             <SpeedTest />
             <NetworkInfo />
             
@@ -203,7 +203,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <PaymentHistory />
             <DataUsage />
             <PaymentReceipt />

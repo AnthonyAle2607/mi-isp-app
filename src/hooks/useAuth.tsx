@@ -10,8 +10,12 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signUpWithPhone: (phone: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithPhone: (phone: string, password: string) => Promise<{ error: any }>;
+  verifyOtp: (phone: string, token: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
+  updatePassword: (newPassword: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -125,6 +129,73 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const signUpWithPhone = async (phone: string, password: string, fullName: string) => {
+    const { error } = await supabase.auth.signUp({
+      phone,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+
+    if (error) {
+      toast({
+        title: "Error en el registro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Código enviado",
+        description: "Revisa tu teléfono para el código de verificación",
+      });
+    }
+
+    return { error };
+  };
+
+  const signInWithPhone = async (phone: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      phone,
+      password,
+    });
+
+    if (error) {
+      toast({
+        title: "Error en el inicio de sesión",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+
+    return { error };
+  };
+
+  const verifyOtp = async (phone: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms'
+    });
+
+    if (error) {
+      toast({
+        title: "Error en la verificación",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Verificación exitosa",
+        description: "Tu cuenta ha sido verificada",
+      });
+    }
+
+    return { error };
+  };
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -144,7 +215,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const resetPassword = async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: `${window.location.origin}/auth?reset=true`,
     });
 
     if (error) {
@@ -156,7 +227,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } else {
       toast({
         title: "Email enviado",
-        description: "Revisa tu email para restablecer tu contraseña",
+        description: "Revisa tu email para restablecer tu contraseña. El enlace expira en 1 hora.",
+      });
+    }
+
+    return { error };
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      toast({
+        title: "Error al actualizar contraseña",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido actualizada exitosamente",
       });
     }
 
@@ -181,8 +273,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isAdmin,
     loading,
     signUp,
+    signUpWithPhone,
     signIn,
+    signInWithPhone,
+    verifyOtp,
     resetPassword,
+    updatePassword,
     signOut,
   };
 
