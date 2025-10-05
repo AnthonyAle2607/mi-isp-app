@@ -28,9 +28,8 @@ const Auth = () => {
   const [showNewPasswordForm, setShowNewPasswordForm] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const [signupMethod, setSignupMethod] = useState<'email' | 'phone'>('email');
-  const { signIn, signUp, signInWithPhone, signUpWithPhone, verifyOtp, resetPassword, updatePassword, user } = useAuth();
+  const { signIn, signUp, signUpWithPhone, verifyOtp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -48,13 +47,8 @@ const Auth = () => {
     e.preventDefault();
     
     try {
-      if (loginMethod === 'email') {
-        emailSchema.parse(email);
-        passwordSchema.parse(password);
-      } else {
-        phoneSchema.parse(phone);
-        passwordSchema.parse(password);
-      }
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
     } catch (error) {
       if (error instanceof z.ZodError) {
         toast({
@@ -67,9 +61,7 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const { error } = loginMethod === 'email' 
-      ? await signIn(email, password)
-      : await signInWithPhone(phone, password);
+    const { error } = await signIn(email, password);
     if (!error) {
       navigate('/');
     }
@@ -301,58 +293,19 @@ const Auth = () => {
                 </TabsList>
               
               <TabsContent value="login">
-                <div className="mb-4 flex gap-2">
-                  <Button
-                    type="button"
-                    variant={loginMethod === 'email' ? 'default' : 'outline'}
-                    onClick={() => setLoginMethod('email')}
-                    className={`flex-1 ${loginMethod === 'email' ? 'bg-white text-primary' : 'bg-white/20 text-white border-white/30'}`}
-                    size="sm"
-                  >
-                    <Mail className="h-4 w-4 mr-2" />
-                    Email
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={loginMethod === 'phone' ? 'default' : 'outline'}
-                    onClick={() => setLoginMethod('phone')}
-                    className={`flex-1 ${loginMethod === 'phone' ? 'bg-white text-primary' : 'bg-white/20 text-white border-white/30'}`}
-                    size="sm"
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    Teléfono
-                  </Button>
-                </div>
-
                 <form onSubmit={handleSignIn} className="space-y-4">
-                  {loginMethod === 'email' ? (
-                    <div className="space-y-2">
-                      <Label htmlFor="email" className="text-white text-sm">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
-                        placeholder="tu@email.com"
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label htmlFor="phone-login" className="text-white text-sm">Teléfono</Label>
-                      <Input
-                        id="phone-login"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                        className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
-                        placeholder="+584121234567 o 04121234567"
-                      />
-                      <p className="text-xs text-white/60">Número venezolano</p>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-white text-sm">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-white text-sm">Contraseña</Label>
                     <Input
@@ -373,17 +326,15 @@ const Auth = () => {
                     {loading ? 'Iniciando...' : 'Iniciar Sesión'}
                   </Button>
                   
-                  {loginMethod === 'email' && (
-                    <div className="text-center">
-                      <button
-                        type="button"
-                        onClick={() => setShowResetForm(true)}
-                        className="text-white/70 hover:text-white text-xs sm:text-sm underline"
-                      >
-                        ¿Olvidaste tu contraseña?
-                      </button>
-                    </div>
-                  )}
+                  <div className="text-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowResetForm(true)}
+                      className="text-white/70 hover:text-white text-xs sm:text-sm underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
                 </form>
               </TabsContent>
               
