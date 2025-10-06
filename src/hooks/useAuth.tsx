@@ -11,9 +11,13 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signUpWithPhone: (phone: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signUpWithBoth: (email: string, phone: string, password: string, fullName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signInWithPhone: (phone: string, password: string) => Promise<{ error: any }>;
   verifyOtp: (phone: string, token: string) => Promise<{ error: any }>;
+  verifyEmailOtp: (email: string, token: string) => Promise<{ error: any }>;
+  resendEmailOtp: (email: string) => Promise<{ error: any }>;
+  resendPhoneOtp: (phone: string) => Promise<{ error: any }>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (newPassword: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
@@ -156,6 +160,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
+  const signUpWithBoth = async (email: string, phone: string, password: string, fullName: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      phone,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+
+    if (error) {
+      toast({
+        title: "Error en el registro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Registro exitoso",
+        description: "Elige un método de verificación",
+      });
+    }
+
+    return { error };
+  };
+
   const signInWithPhone = async (phone: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       phone,
@@ -190,6 +225,73 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast({
         title: "Verificación exitosa",
         description: "Tu cuenta ha sido verificada",
+      });
+    }
+
+    return { error };
+  };
+
+  const verifyEmailOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email'
+    });
+
+    if (error) {
+      toast({
+        title: "Error en la verificación",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Verificación exitosa",
+        description: "Tu cuenta ha sido verificada",
+      });
+    }
+
+    return { error };
+  };
+
+  const resendEmailOtp = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+
+    if (error) {
+      toast({
+        title: "Error al reenviar código",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Código reenviado",
+        description: "Revisa tu correo electrónico",
+      });
+    }
+
+    return { error };
+  };
+
+  const resendPhoneOtp = async (phone: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'sms',
+      phone: phone,
+    });
+
+    if (error) {
+      toast({
+        title: "Error al reenviar código",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Código reenviado",
+        description: "Revisa tu teléfono",
       });
     }
 
@@ -274,9 +376,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     signUp,
     signUpWithPhone,
+    signUpWithBoth,
     signIn,
     signInWithPhone,
     verifyOtp,
+    verifyEmailOtp,
+    resendEmailOtp,
+    resendPhoneOtp,
     resetPassword,
     updatePassword,
     signOut,

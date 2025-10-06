@@ -26,10 +26,13 @@ const Auth = () => {
   const [showResetForm, setShowResetForm] = useState(false);
   const [showOtpForm, setShowOtpForm] = useState(false);
   const [showNewPasswordForm, setShowNewPasswordForm] = useState(false);
+  const [showVerificationChoice, setShowVerificationChoice] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [signupMethod, setSignupMethod] = useState<'email' | 'phone'>('email');
-  const { signIn, signUp, signUpWithPhone, verifyOtp, resetPassword, updatePassword, user } = useAuth();
+  const [verificationMethod, setVerificationMethod] = useState<'email' | 'phone'>('email');
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [registeredPhone, setRegisteredPhone] = useState('');
+  const { signIn, signUpWithBoth, verifyOtp, verifyEmailOtp, resendEmailOtp, resendPhoneOtp, resetPassword, updatePassword, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -73,11 +76,8 @@ const Auth = () => {
     
     try {
       fullNameSchema.parse(fullName);
-      if (signupMethod === 'email') {
-        emailSchema.parse(email);
-      } else {
-        phoneSchema.parse(phone);
-      }
+      emailSchema.parse(email);
+      phoneSchema.parse(phone);
       passwordSchema.parse(password);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -91,12 +91,12 @@ const Auth = () => {
     }
 
     setLoading(true);
-    const { error } = signupMethod === 'email'
-      ? await signUp(email, password, fullName)
-      : await signUpWithPhone(phone, password, fullName);
+    const { error } = await signUpWithBoth(email, phone, password, fullName);
     
-    if (!error && signupMethod === 'phone') {
-      setShowOtpForm(true);
+    if (!error) {
+      setRegisteredEmail(email);
+      setRegisteredPhone(phone);
+      setShowVerificationChoice(true);
     }
     setLoading(false);
   };
@@ -104,12 +104,38 @@ const Auth = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await verifyOtp(phone, otp);
+    const { error } = verificationMethod === 'phone' 
+      ? await verifyOtp(registeredPhone, otp)
+      : await verifyEmailOtp(registeredEmail, otp);
     if (!error) {
       setShowOtpForm(false);
+      setShowVerificationChoice(false);
       navigate('/');
     }
     setLoading(false);
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    if (verificationMethod === 'phone') {
+      await resendPhoneOtp(registeredPhone);
+    } else {
+      await resendEmailOtp(registeredEmail);
+    }
+    setLoading(false);
+  };
+
+  const handleChooseVerification = (method: 'email' | 'phone') => {
+    setVerificationMethod(method);
+    setShowVerificationChoice(false);
+    setShowOtpForm(true);
+    
+    // Enviar el código según el método elegido
+    if (method === 'phone') {
+      resendPhoneOtp(registeredPhone);
+    } else {
+      resendEmailOtp(registeredEmail);
+    }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -176,19 +202,61 @@ const Auth = () => {
         <Card className="backdrop-blur-sm bg-white/10 border-white/20">
           <CardHeader className="text-center px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl text-white">
-              {showResetForm ? "Recuperar Contraseña" : showNewPasswordForm ? "Nueva Contraseña" : showOtpForm ? "Verificar Código" : "Acceso al Portal"}
+              {showResetForm ? "Recuperar Contraseña" : showNewPasswordForm ? "Nueva Contraseña" : showVerificationChoice ? "Verificar Cuenta" : showOtpForm ? "Verificar Código" : "Acceso al Portal"}
             </CardTitle>
             <CardDescription className="text-sm sm:text-base text-white/70">
-              {showResetForm ? "Ingresa tu email para restablecer tu contraseña" : showNewPasswordForm ? "Crea tu nueva contraseña" : showOtpForm ? "Ingresa el código enviado a tu teléfono" : "Gestiona tu servicio de internet"}
+              {showResetForm ? "Ingresa tu email para restablecer tu contraseña" : showNewPasswordForm ? "Crea tu nueva contraseña" : showVerificationChoice ? "Elige cómo deseas verificar tu cuenta" : showOtpForm ? `Ingresa el código enviado a tu ${verificationMethod === 'phone' ? 'teléfono' : 'correo'}` : "Gestiona tu servicio de internet"}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
-            {showOtpForm ? (
+            {showVerificationChoice ? (
               <div className="space-y-4">
                 <Button
                   type="button"
                   variant="ghost"
-                  onClick={() => setShowOtpForm(false)}
+                  onClick={() => {
+                    setShowVerificationChoice(false);
+                    setRegisteredEmail('');
+                    setRegisteredPhone('');
+                  }}
+                  className="text-white hover:bg-white/10 p-0 h-auto text-sm"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Volver
+                </Button>
+                
+                <div className="space-y-3">
+                  <p className="text-white/80 text-sm text-center mb-4">
+                    Selecciona cómo deseas verificar tu cuenta
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={() => handleChooseVerification('email')}
+                    className="w-full bg-white text-primary hover:bg-white/90 flex items-center justify-center gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Verificar por Correo
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => handleChooseVerification('phone')}
+                    className="w-full bg-white text-primary hover:bg-white/90 flex items-center justify-center gap-2"
+                  >
+                    <Phone className="h-4 w-4" />
+                    Verificar por SMS
+                  </Button>
+                </div>
+              </div>
+            ) : showOtpForm ? (
+              <div className="space-y-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowOtpForm(false);
+                    setShowVerificationChoice(true);
+                    setOtp('');
+                  }}
                   className="text-white hover:bg-white/10 p-0 h-auto text-sm"
                 >
                   <ArrowLeft className="h-4 w-4 mr-2" />
@@ -208,6 +276,9 @@ const Auth = () => {
                       placeholder="123456"
                       maxLength={6}
                     />
+                    <p className="text-xs text-white/60">
+                      Código enviado a: {verificationMethod === 'phone' ? registeredPhone : registeredEmail}
+                    </p>
                   </div>
                   <Button 
                     type="submit" 
@@ -215,6 +286,15 @@ const Auth = () => {
                     disabled={loading}
                   >
                     {loading ? 'Verificando...' : 'Verificar Código'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleResendOtp}
+                    className="w-full text-white hover:bg-white/10 text-sm"
+                    disabled={loading}
+                  >
+                    Reenviar código
                   </Button>
                 </form>
               </div>
@@ -339,29 +419,6 @@ const Auth = () => {
               </TabsContent>
               
               <TabsContent value="signup">
-                <div className="mb-4 flex gap-2">
-                  <Button
-                    type="button"
-                    variant={signupMethod === 'email' ? 'default' : 'outline'}
-                    onClick={() => setSignupMethod('email')}
-                    className={`flex-1 ${signupMethod === 'email' ? 'bg-white text-primary' : 'bg-white/20 text-white border-white/30'}`}
-                    size="sm"
-                  >
-                    <Mail className="h-4 w-4 mr-2" />
-                    Email
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={signupMethod === 'phone' ? 'default' : 'outline'}
-                    onClick={() => setSignupMethod('phone')}
-                    className={`flex-1 ${signupMethod === 'phone' ? 'bg-white text-primary' : 'bg-white/20 text-white border-white/30'}`}
-                    size="sm"
-                  >
-                    <Phone className="h-4 w-4 mr-2" />
-                    Teléfono
-                  </Button>
-                </div>
-
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-white text-sm">Nombre Completo</Label>
@@ -375,34 +432,31 @@ const Auth = () => {
                       placeholder="Tu nombre completo"
                     />
                   </div>
-                  {signupMethod === 'email' ? (
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-white text-sm">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
-                        placeholder="tu@email.com"
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Label htmlFor="phone-signup" className="text-white text-sm">Teléfono</Label>
-                      <Input
-                        id="phone-signup"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        required
-                        className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
-                        placeholder="+584121234567 o 04121234567"
-                      />
-                      <p className="text-xs text-white/60">Número venezolano</p>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="text-white text-sm">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="tu@email.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone-signup" className="text-white text-sm">Teléfono</Label>
+                    <Input
+                      id="phone-signup"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      required
+                      className="bg-white/20 border-white/30 text-white placeholder:text-white/50"
+                      placeholder="+584121234567 o 04121234567"
+                    />
+                    <p className="text-xs text-white/60">Número venezolano</p>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-password" className="text-white text-sm">Contraseña</Label>
                     <Input
