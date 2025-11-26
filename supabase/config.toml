@@ -1,1 +1,4 @@
 project_id = "rrkfdjnfwtrbmcyflumq"
+
+[functions.auto-suspend-accounts]
+verify_jwt = false

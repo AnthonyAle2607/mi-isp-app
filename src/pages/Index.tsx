@@ -8,6 +8,8 @@ import PaymentHistory from "@/components/Dashboard/PaymentHistory";
 import PaymentReceipt from "@/components/Dashboard/PaymentReceipt";
 import DataUsage from "@/components/Dashboard/DataUsage";
 import PaymentMethods from "@/components/Dashboard/PaymentMethods";
+import SupportTickets from "@/components/Dashboard/SupportTickets";
+import AccountStatus from "@/components/Dashboard/AccountStatus";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -180,7 +182,13 @@ const Index = () => {
                   </div>
                 </button>
                 
-                <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+                <button 
+                  onClick={() => {
+                    const ticketsSection = document.querySelector('[data-tickets-section]');
+                    ticketsSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors"
+                >
                   <div className="flex items-center space-x-3">
                     <AlertTriangle className="h-5 w-5 text-primary" />
                     <div>
@@ -204,6 +212,10 @@ const Index = () => {
           </div>
 
           <div className="space-y-4 sm:space-y-6">
+            <div data-tickets-section>
+              <AccountStatus />
+            </div>
+            <SupportTickets />
             <PaymentHistory />
             <DataUsage />
             <PaymentReceipt />
