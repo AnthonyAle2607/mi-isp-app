@@ -60,6 +60,8 @@ export type Database = {
           id: string
           installation_date: string | null
           ip_address: string | null
+          last_payment_date: string | null
+          next_billing_date: string | null
           phone: string | null
           plan_type: string | null
           updated_at: string
@@ -74,6 +76,8 @@ export type Database = {
           id?: string
           installation_date?: string | null
           ip_address?: string | null
+          last_payment_date?: string | null
+          next_billing_date?: string | null
           phone?: string | null
           plan_type?: string | null
           updated_at?: string
@@ -88,12 +92,64 @@ export type Database = {
           id?: string
           installation_date?: string | null
           ip_address?: string | null
+          last_payment_date?: string | null
+          next_billing_date?: string | null
           phone?: string | null
           plan_type?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          admin_response: string | null
+          created_at: string
+          description: string
+          id: string
+          priority: string | null
+          resolved_at: string | null
+          status: string
+          ticket_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_response?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          status?: string
+          ticket_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_response?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string | null
+          resolved_at?: string | null
+          status?: string
+          ticket_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -121,6 +177,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_and_suspend_unpaid_accounts: { Args: never; Returns: undefined }
       get_current_user_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]

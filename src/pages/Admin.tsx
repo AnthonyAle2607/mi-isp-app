@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Settings, BarChart3, Shield, ArrowLeft } from 'lucide-react';
+import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from '@/components/Dashboard/EditUserDialog';
 import CreateUserDialog from '@/components/Dashboard/CreateUserDialog';
+import AdminTicketsPanel from '@/components/Dashboard/AdminTicketsPanel';
 
 interface Profile {
   id: string;
@@ -148,10 +149,14 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Usuarios
+            </TabsTrigger>
+            <TabsTrigger value="tickets" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Tickets
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -229,6 +234,10 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="tickets" className="space-y-6">
+            <AdminTicketsPanel />
+          </TabsContent>
+
           <TabsContent value="stats" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
@@ -287,15 +296,48 @@ const Admin = () => {
                 <div className="space-y-4">
                   <div className="p-4 border rounded-lg bg-card/50">
                     <h3 className="font-semibold text-foreground mb-2">
+                      Gestión Automática de Servicios
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      El sistema realiza cortes automáticos cada día 5 del mes para cuentas sin pago.
+                      Los servicios se reactivan automáticamente al verificarse el pago.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          const { data, error } = await supabase.functions.invoke('auto-suspend-accounts');
+                          if (error) throw error;
+                          toast({
+                            title: "Ejecutado",
+                            description: `Verificación completada: ${JSON.stringify(data)}`,
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: "Error",
+                            description: error.message,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    >
+                      Ejecutar Verificación de Cortes
+                    </Button>
+                  </div>
+
+                  <div className="p-4 border rounded-lg bg-card/50">
+                    <h3 className="font-semibold text-foreground mb-2">
                       Funcionalidades Disponibles
                     </h3>
                     <ul className="text-sm text-muted-foreground space-y-1">
                       <li>✅ Gestión de usuarios y roles</li>
-                      <li>✅ Vista de todos los perfiles</li>
-                      <li>✅ Promoción de usuarios a admin</li>
+                      <li>✅ Gestión de IPs estáticas</li>
+                      <li>✅ Sistema de tickets de soporte</li>
+                      <li>✅ Corte/reactivación automática basada en pagos</li>
+                      <li>✅ Fechas de corte programadas (día 5 de cada mes)</li>
+                      <li>✅ Historial de tickets y reportes</li>
+                      <li>✅ Cambio de contraseña por usuario</li>
                       <li>✅ Estadísticas básicas</li>
-                      <li>🔄 Gestión de pagos (próximamente)</li>
-                      <li>🔄 Configuración de planes (próximamente)</li>
                     </ul>
                   </div>
                 </div>
