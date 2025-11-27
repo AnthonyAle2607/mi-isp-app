@@ -47,6 +47,14 @@ All colors MUST be HSL.
     --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.3);
     --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.3);
 
+    /* Network Status Colors */
+    --network-online: 134 61% 65%;
+    --network-online-bg: 134 61% 85%;
+    --network-offline: 0 72% 71%;
+    --network-offline-bg: 0 72% 89%;
+    --network-maintenance: 45 100% 72%;
+    --network-maintenance-bg: 45 100% 90%;
+
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;

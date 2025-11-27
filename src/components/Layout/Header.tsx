@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bell, User, LogOut, Wifi } from "lucide-react";
+import { Bell, User, LogOut, Wifi, Network } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import ProfileDialog from './ProfileDialog';
@@ -43,14 +43,25 @@ const Header = () => {
           </div>
           
           {isAdmin && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/admin')}
-              className="text-white border-white/20 hover:bg-white/20 hidden sm:flex text-xs"
-            >
-              Panel Admin
-            </Button>
+            <>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/network')}
+                className="text-foreground border-border/50 hover:bg-secondary hidden sm:flex text-xs"
+              >
+                <Network className="h-3 w-3 mr-1" />
+                Red
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/admin')}
+                className="text-foreground border-border/50 hover:bg-secondary hidden sm:flex text-xs"
+              >
+                Panel Admin
+              </Button>
+            </>
           )}
           
           <Button variant="ghost" size="icon" onClick={handleSignOut}>
