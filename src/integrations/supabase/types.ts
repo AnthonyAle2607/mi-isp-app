@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      network_devices: {
+        Row: {
+          created_at: string
+          description: string | null
+          device_type: string
+          id: string
+          ip_address: string
+          last_check: string | null
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          device_type: string
+          id?: string
+          ip_address: string
+          last_check?: string | null
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          device_type?: string
+          id?: string
+          ip_address?: string
+          last_check?: string | null
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       payment_receipts: {
         Row: {
           admin_notes: string | null
