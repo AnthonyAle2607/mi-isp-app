@@ -1,13 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Server, HardDrive, Radio, Router } from "lucide-react";
 import type { NetworkDevice } from "@/pages/NetworkManagement";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface NetworkTopologyMapProps {
   devices: NetworkDevice[];
   isLoading: boolean;
+  onDeviceClick?: (device: NetworkDevice) => void;
 }
 
-const NetworkTopologyMap = ({ devices, isLoading }: NetworkTopologyMapProps) => {
+const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick }: NetworkTopologyMapProps) => {
   const servidores = devices.filter(d => d.device_type === 'servidor');
   const nodos = devices.filter(d => d.device_type === 'nodo');
   const troncales = devices.filter(d => d.device_type === 'troncal');
@@ -32,15 +34,33 @@ const NetworkTopologyMap = ({ devices, isLoading }: NetworkTopologyMapProps) => 
   };
 
   const DeviceNode = ({ device, icon: Icon }: { device: NetworkDevice; icon: React.ElementType }) => (
-    <div 
-      className={`flex flex-col items-center p-2 rounded-lg border-2 ${getStatusColor(device.status)} transition-all hover:scale-105`}
-      title={`${device.name}\n${device.ip_address}\n${device.description || ''}`}
-    >
-      <Icon className={`h-5 w-5 ${getIconColor(device.status)}`} />
-      <span className="text-[10px] font-mono mt-1 text-foreground/80 truncate max-w-[80px]">
-        {device.ip_address.split('.').pop()}
-      </span>
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div 
+            className={`flex flex-col items-center p-2 rounded-lg border-2 ${getStatusColor(device.status)} transition-all hover:scale-110 cursor-pointer ${
+              device.status === 'online' ? 'network-pulse' : device.status === 'offline' ? 'animate-pulse' : ''
+            }`}
+            onClick={() => onDeviceClick?.(device)}
+          >
+            <Icon className={`h-5 w-5 ${getIconColor(device.status)}`} />
+            <span className="text-[10px] font-mono mt-1 text-foreground/80 truncate max-w-[80px]">
+              {device.ip_address.split('.').pop()}
+            </span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[200px]">
+          <div className="space-y-1">
+            <p className="font-medium">{device.name}</p>
+            <p className="text-xs font-mono">{device.ip_address}</p>
+            <p className="text-xs capitalize">Estado: {device.status}</p>
+            {device.description && (
+              <p className="text-xs text-muted-foreground">{device.description}</p>
+            )}
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 
   if (isLoading) {
@@ -59,15 +79,15 @@ const NetworkTopologyMap = ({ devices, isLoading }: NetworkTopologyMapProps) => 
   return (
     <Card className="bg-card border-border/50">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-lg">Topología de Red - 10.255.255.0/24</CardTitle>
           <div className="flex gap-4 text-xs">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-[hsl(var(--network-online-bg))] border border-[hsl(var(--network-online))]"></span>
+              <span className="w-3 h-3 rounded-full bg-[hsl(var(--network-online-bg))] border border-[hsl(var(--network-online))] network-pulse"></span>
               Online
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-[hsl(var(--network-offline-bg))] border border-[hsl(var(--network-offline))]"></span>
+              <span className="w-3 h-3 rounded-full bg-[hsl(var(--network-offline-bg))] border border-[hsl(var(--network-offline))] animate-pulse"></span>
               Offline
             </span>
             <span className="flex items-center gap-1">
