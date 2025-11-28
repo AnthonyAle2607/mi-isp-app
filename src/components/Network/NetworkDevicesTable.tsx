@@ -123,9 +123,11 @@ const NetworkDevicesTable = ({
                 <TableRow>
                   <SortableHeader column="name">Nombre</SortableHeader>
                   <SortableHeader column="ip_address">Dirección IP</SortableHeader>
+                  <SortableHeader column="subnet">Subred</SortableHeader>
+                  <SortableHeader column="location">Ubicación</SortableHeader>
                   <SortableHeader column="device_type">Tipo</SortableHeader>
                   <SortableHeader column="status">Estado</SortableHeader>
-                  <TableHead className="hidden md:table-cell">Descripción</TableHead>
+                  <TableHead className="hidden lg:table-cell">Descripción</TableHead>
                   <SortableHeader column="last_check">Última Verificación</SortableHeader>
                 </TableRow>
               </TableHeader>
@@ -133,14 +135,14 @@ const NetworkDevicesTable = ({
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={8}>
                         <div className="h-8 bg-secondary/20 animate-pulse rounded"></div>
                       </TableCell>
                     </TableRow>
                   ))
                 ) : devices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       No hay dispositivos que coincidan con los filtros
                     </TableCell>
                   </TableRow>
@@ -154,9 +156,11 @@ const NetworkDevicesTable = ({
                         >
                           <TableCell className="font-medium">{device.name}</TableCell>
                           <TableCell className="font-mono text-sm">{device.ip_address}</TableCell>
+                          <TableCell className="font-mono text-xs text-muted-foreground">{device.subnet || '-'}</TableCell>
+                          <TableCell className="text-sm">{device.location || '-'}</TableCell>
                           <TableCell>{getTypeBadge(device.device_type)}</TableCell>
                           <TableCell>{getStatusBadge(device.status)}</TableCell>
-                          <TableCell className="hidden md:table-cell text-muted-foreground text-sm max-w-[200px] truncate">
+                          <TableCell className="hidden lg:table-cell text-muted-foreground text-sm max-w-[200px] truncate">
                             {device.description || '-'}
                           </TableCell>
                           <TableCell className="text-muted-foreground text-sm">

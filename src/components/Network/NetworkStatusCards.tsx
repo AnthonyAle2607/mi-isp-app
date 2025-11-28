@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { Activity, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle, Clock, Network } from "lucide-react";
 import type { NetworkDevice, StatusFilter } from "@/pages/NetworkManagement";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useMemo } from "react";
 
 interface NetworkStatusCardsProps {
   devices: NetworkDevice[];
@@ -15,6 +16,12 @@ const NetworkStatusCards = ({ devices, isLoading, statusFilter, onStatusFilterCh
   const offlineCount = devices.filter(d => d.status === 'offline').length;
   const maintenanceCount = devices.filter(d => d.status === 'maintenance').length;
   const totalCount = devices.length;
+
+  // Count unique subnets
+  const subnetCount = useMemo(() => {
+    const subnets = new Set(devices.map(d => d.subnet).filter(Boolean));
+    return subnets.size;
+  }, [devices]);
   
   const getNetworkStatus = () => {
     if (offlineCount === 0 && maintenanceCount === 0) return 'operational';
@@ -30,8 +37,8 @@ const NetworkStatusCards = ({ devices, isLoading, statusFilter, onStatusFilterCh
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map(i => (
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {[1, 2, 3, 4, 5].map(i => (
           <Card key={i} className="p-6 animate-pulse bg-secondary/20">
             <div className="h-20"></div>
           </Card>
@@ -42,7 +49,7 @@ const NetworkStatusCards = ({ devices, isLoading, statusFilter, onStatusFilterCh
 
   return (
     <TooltipProvider>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Network Status Card */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -85,6 +92,31 @@ const NetworkStatusCards = ({ devices, isLoading, statusFilter, onStatusFilterCh
           </TooltipTrigger>
           <TooltipContent>
             <p>Click para mostrar todos los dispositivos</p>
+          </TooltipContent>
+        </Tooltip>
+
+        {/* Subnets Card */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Card className="p-6 bg-gradient-to-br from-card to-secondary/20 border border-border/50">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground font-medium">Subredes</p>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-bold text-foreground">{subnetCount}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {totalCount} dispositivos
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3 bg-primary/20 rounded-lg">
+                  <Network className="h-5 w-5 text-primary" />
+                </div>
+              </div>
+            </Card>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Cantidad de subredes configuradas</p>
           </TooltipContent>
         </Tooltip>
 

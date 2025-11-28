@@ -152,6 +152,14 @@ const NetworkDeviceModal = ({ device, onClose, onStatusChange }: NetworkDeviceMo
               <p className="text-sm text-muted-foreground">Última Verificación</p>
               <p className="text-sm">{formatDate(device.last_check)}</p>
             </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Subred</p>
+              <p className="font-mono text-sm">{device.subnet || 'Sin asignar'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Ubicación</p>
+              <p className="text-sm">{device.location || 'Sin asignar'}</p>
+            </div>
           </div>
 
           {/* Description */}

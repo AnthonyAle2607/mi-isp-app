@@ -1,7 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Server, HardDrive, Radio, Router } from "lucide-react";
+import { Server, HardDrive, Radio, Router, Network } from "lucide-react";
 import type { NetworkDevice } from "@/pages/NetworkManagement";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { useMemo, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface NetworkTopologyMapProps {
   devices: NetworkDevice[];
@@ -10,10 +13,32 @@ interface NetworkTopologyMapProps {
 }
 
 const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick }: NetworkTopologyMapProps) => {
-  const servidores = devices.filter(d => d.device_type === 'servidor');
-  const nodos = devices.filter(d => d.device_type === 'nodo');
-  const troncales = devices.filter(d => d.device_type === 'troncal');
-  const cpes = devices.filter(d => d.device_type === 'cpe');
+  const [viewMode, setViewMode] = useState<'subnet' | 'type'>('subnet');
+
+  // Group devices by subnet
+  const devicesBySubnet = useMemo(() => {
+    const grouped: Record<string, NetworkDevice[]> = {};
+    devices.forEach(device => {
+      const subnet = device.subnet || 'Sin subred';
+      if (!grouped[subnet]) grouped[subnet] = [];
+      grouped[subnet].push(device);
+    });
+    return grouped;
+  }, [devices]);
+
+  // Group devices by type (legacy view)
+  const devicesByType = useMemo(() => ({
+    servidores: devices.filter(d => d.device_type === 'servidor'),
+    nodos: devices.filter(d => d.device_type === 'nodo'),
+    troncales: devices.filter(d => d.device_type === 'troncal'),
+    cpes: devices.filter(d => d.device_type === 'cpe'),
+  }), [devices]);
+
+  // Unique locations
+  const locations = useMemo(() => {
+    const locs = new Set(devices.map(d => d.location).filter(Boolean));
+    return Array.from(locs) as string[];
+  }, [devices]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -33,35 +58,65 @@ const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick }: NetworkTopolo
     }
   };
 
-  const DeviceNode = ({ device, icon: Icon }: { device: NetworkDevice; icon: React.ElementType }) => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div 
-            className={`flex flex-col items-center p-2 rounded-lg border-2 ${getStatusColor(device.status)} transition-all hover:scale-110 cursor-pointer ${
-              device.status === 'online' ? 'network-pulse' : device.status === 'offline' ? 'animate-pulse' : ''
-            }`}
-            onClick={() => onDeviceClick?.(device)}
-          >
-            <Icon className={`h-5 w-5 ${getIconColor(device.status)}`} />
-            <span className="text-[10px] font-mono mt-1 text-foreground/80 truncate max-w-[80px]">
-              {device.ip_address.split('.').pop()}
-            </span>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-[200px]">
-          <div className="space-y-1">
-            <p className="font-medium">{device.name}</p>
-            <p className="text-xs font-mono">{device.ip_address}</p>
-            <p className="text-xs capitalize">Estado: {device.status}</p>
-            {device.description && (
-              <p className="text-xs text-muted-foreground">{device.description}</p>
-            )}
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+  const getDeviceIcon = (type: string) => {
+    switch (type) {
+      case 'servidor': return Server;
+      case 'nodo': return HardDrive;
+      case 'troncal': return Radio;
+      case 'cpe': return Router;
+      default: return Server;
+    }
+  };
+
+  const DeviceNode = ({ device }: { device: NetworkDevice }) => {
+    const Icon = getDeviceIcon(device.device_type);
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div 
+              className={`flex flex-col items-center p-2 rounded-lg border-2 ${getStatusColor(device.status)} transition-all hover:scale-110 cursor-pointer ${
+                device.status === 'online' ? 'network-pulse' : device.status === 'offline' ? 'animate-pulse' : ''
+              }`}
+              onClick={() => onDeviceClick?.(device)}
+            >
+              <Icon className={`h-5 w-5 ${getIconColor(device.status)}`} />
+              <span className="text-[10px] font-mono mt-1 text-foreground/80 truncate max-w-[80px]">
+                {device.ip_address.split('.').slice(-1)[0]}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-[200px]">
+            <div className="space-y-1">
+              <p className="font-medium">{device.name}</p>
+              <p className="text-xs font-mono">{device.ip_address}</p>
+              <p className="text-xs capitalize">Estado: {device.status}</p>
+              {device.location && <p className="text-xs">Ubicación: {device.location}</p>}
+              {device.description && (
+                <p className="text-xs text-muted-foreground">{device.description}</p>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
+  const SubnetStats = ({ subnet, subnetDevices }: { subnet: string; subnetDevices: NetworkDevice[] }) => {
+    const online = subnetDevices.filter(d => d.status === 'online').length;
+    const offline = subnetDevices.filter(d => d.status === 'offline').length;
+    const maintenance = subnetDevices.filter(d => d.status === 'maintenance').length;
+    const location = subnetDevices[0]?.location;
+
+    return (
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        {location && <Badge variant="outline" className="text-[10px]">{location}</Badge>}
+        <span className="text-[hsl(var(--network-online))]">{online} online</span>
+        {offline > 0 && <span className="text-[hsl(var(--network-offline))]">{offline} offline</span>}
+        {maintenance > 0 && <span className="text-[hsl(var(--network-maintenance))]">{maintenance} mant.</span>}
+      </div>
+    );
+  };
 
   if (isLoading) {
     return (
@@ -80,7 +135,10 @@ const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick }: NetworkTopolo
     <Card className="bg-card border-border/50">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <CardTitle className="text-lg">Topología de Red - 10.255.255.0/24</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Network className="h-5 w-5" />
+            Topología de Red
+          </CardTitle>
           <div className="flex gap-4 text-xs">
             <span className="flex items-center gap-1">
               <span className="w-3 h-3 rounded-full bg-[hsl(var(--network-online-bg))] border border-[hsl(var(--network-online))] network-pulse"></span>
@@ -98,66 +156,90 @@ const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick }: NetworkTopolo
         </div>
       </CardHeader>
       <CardContent>
-        <div className="relative py-4">
-          {/* Servidores - Nivel 1 */}
-          <div className="mb-6">
-            <p className="text-xs text-muted-foreground mb-2 font-medium">SERVIDORES (10.255.255.1-9)</p>
-            <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4">
-              {servidores.map(device => (
-                <DeviceNode key={device.id} device={device} icon={Server} />
-              ))}
-              {servidores.length === 0 && <span className="text-muted-foreground text-sm">Sin servidores</span>}
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'subnet' | 'type')}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="subnet">Por Subred</TabsTrigger>
+            <TabsTrigger value="type">Por Tipo</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="subnet" className="space-y-4">
+            {Object.keys(devicesBySubnet).length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No hay dispositivos configurados</p>
+            ) : (
+              Object.entries(devicesBySubnet).map(([subnet, subnetDevices]) => (
+                <div key={subnet} className="border border-border/50 rounded-lg p-4 bg-secondary/5">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-mono font-medium text-sm">{subnet}</h4>
+                    <SubnetStats subnet={subnet} subnetDevices={subnetDevices} />
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {subnetDevices.map(device => (
+                      <DeviceNode key={device.id} device={device} />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="type" className="relative py-4">
+            {/* Servidores */}
+            <div className="mb-6">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">SERVIDORES</p>
+              <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4">
+                {devicesByType.servidores.map(device => (
+                  <DeviceNode key={device.id} device={device} />
+                ))}
+                {devicesByType.servidores.length === 0 && <span className="text-muted-foreground text-sm">Sin servidores</span>}
+              </div>
             </div>
-          </div>
 
-          {/* Línea conectora */}
-          <div className="flex justify-center mb-2">
-            <div className="w-0.5 h-6 bg-border"></div>
-          </div>
-
-          {/* Nodos - Nivel 2 */}
-          <div className="mb-6">
-            <p className="text-xs text-muted-foreground mb-2 font-medium">NODOS (10.255.255.10-49)</p>
-            <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4">
-              {nodos.map(device => (
-                <DeviceNode key={device.id} device={device} icon={HardDrive} />
-              ))}
-              {nodos.length === 0 && <span className="text-muted-foreground text-sm">Sin nodos</span>}
+            <div className="flex justify-center mb-2">
+              <div className="w-0.5 h-6 bg-border"></div>
             </div>
-          </div>
 
-          {/* Línea conectora */}
-          <div className="flex justify-center mb-2">
-            <div className="w-0.5 h-6 bg-border"></div>
-          </div>
-
-          {/* Troncales - Nivel 3 */}
-          <div className="mb-6">
-            <p className="text-xs text-muted-foreground mb-2 font-medium">TRONCALES (10.255.255.50-79)</p>
-            <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4">
-              {troncales.map(device => (
-                <DeviceNode key={device.id} device={device} icon={Radio} />
-              ))}
-              {troncales.length === 0 && <span className="text-muted-foreground text-sm">Sin troncales</span>}
+            {/* Nodos */}
+            <div className="mb-6">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">NODOS</p>
+              <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4">
+                {devicesByType.nodos.map(device => (
+                  <DeviceNode key={device.id} device={device} />
+                ))}
+                {devicesByType.nodos.length === 0 && <span className="text-muted-foreground text-sm">Sin nodos</span>}
+              </div>
             </div>
-          </div>
 
-          {/* Línea conectora */}
-          <div className="flex justify-center mb-2">
-            <div className="w-0.5 h-6 bg-border"></div>
-          </div>
-
-          {/* CPEs - Nivel 4 */}
-          <div>
-            <p className="text-xs text-muted-foreground mb-2 font-medium">CPEs (10.255.255.100-254)</p>
-            <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4 max-h-32 overflow-y-auto">
-              {cpes.map(device => (
-                <DeviceNode key={device.id} device={device} icon={Router} />
-              ))}
-              {cpes.length === 0 && <span className="text-muted-foreground text-sm">Sin CPEs</span>}
+            <div className="flex justify-center mb-2">
+              <div className="w-0.5 h-6 bg-border"></div>
             </div>
-          </div>
-        </div>
+
+            {/* Troncales */}
+            <div className="mb-6">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">TRONCALES</p>
+              <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4">
+                {devicesByType.troncales.map(device => (
+                  <DeviceNode key={device.id} device={device} />
+                ))}
+                {devicesByType.troncales.length === 0 && <span className="text-muted-foreground text-sm">Sin troncales</span>}
+              </div>
+            </div>
+
+            <div className="flex justify-center mb-2">
+              <div className="w-0.5 h-6 bg-border"></div>
+            </div>
+
+            {/* CPEs */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2 font-medium">CPEs</p>
+              <div className="flex flex-wrap gap-3 justify-center bg-secondary/10 rounded-lg p-4 max-h-32 overflow-y-auto">
+                {devicesByType.cpes.map(device => (
+                  <DeviceNode key={device.id} device={device} />
+                ))}
+                {devicesByType.cpes.length === 0 && <span className="text-muted-foreground text-sm">Sin CPEs</span>}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
