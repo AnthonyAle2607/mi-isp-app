@@ -60,7 +60,7 @@ const NetworkManagement = () => {
       return data as NetworkDevice[];
     },
     enabled: !!user && isAdmin,
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
   // Detect status changes and show notifications
@@ -132,7 +132,7 @@ const NetworkManagement = () => {
     const steps = [
       { delay: 0, action: 'normal', message: '🟢 Estado normal de la red' },
       { delay: 15000, action: 'troncal_fail', message: '⚠️ Simulando falla en troncales...' },
-      { delay: 30000, action: 'cpe_fail', message: '🔴 Simulando falla masiva en CPEs...' },
+      { delay: 30000, action: 'cpe_fail', message: '🔴 Simulando falla en CPEs de Zona Norte...' },
       { delay: 60000, action: 'partial_recovery', message: '🔧 Iniciando recuperación parcial...' },
       { delay: 90000, action: 'full_recovery', message: '✅ Recuperación completa' },
       { delay: 120000, action: 'end', message: '🎬 Demo finalizada' },
@@ -148,26 +148,12 @@ const NetworkManagement = () => {
             .update({ status: 'offline', last_check: new Date().toISOString() })
             .eq('device_type', 'troncal');
         } else if (step.action === 'cpe_fail') {
-          const { data: cpes } = await supabase
+          // Simulate failure in Zona Norte CPEs (location-based)
+          await supabase
             .from('network_devices')
-            .select('id, ip_address')
-            .eq('device_type', 'cpe');
-          
-          if (cpes) {
-            const cpeIds = cpes
-              .filter(c => {
-                const lastOctet = parseInt(c.ip_address.split('.')[3]);
-                return lastOctet >= 100 && lastOctet <= 150;
-              })
-              .map(c => c.id);
-            
-            if (cpeIds.length > 0) {
-              await supabase
-                .from('network_devices')
-                .update({ status: 'offline', last_check: new Date().toISOString() })
-                .in('id', cpeIds);
-            }
-          }
+            .update({ status: 'offline', last_check: new Date().toISOString() })
+            .eq('device_type', 'cpe')
+            .eq('location', 'Zona Norte');
         } else if (step.action === 'partial_recovery') {
           await supabase
             .from('network_devices')
