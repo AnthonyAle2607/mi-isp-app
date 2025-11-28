@@ -25,6 +25,8 @@ export interface NetworkDevice {
   last_check: string | null;
   created_at: string;
   updated_at: string;
+  subnet: string | null;
+  location: string | null;
 }
 
 export type StatusFilter = 'all' | 'online' | 'offline' | 'maintenance';
@@ -212,7 +214,7 @@ const NetworkManagement = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Red de Gestión Interna</h1>
-            <p className="text-muted-foreground">Monitoreo de dispositivos en la red 10.255.255.0/24</p>
+            <p className="text-muted-foreground">Monitoreo de dispositivos en múltiples subredes privadas</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="text-sm text-muted-foreground">

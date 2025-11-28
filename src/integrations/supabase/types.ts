@@ -22,8 +22,10 @@ export type Database = {
           id: string
           ip_address: string
           last_check: string | null
+          location: string | null
           name: string
           status: string
+          subnet: string | null
           updated_at: string
         }
         Insert: {
@@ -33,8 +35,10 @@ export type Database = {
           id?: string
           ip_address: string
           last_check?: string | null
+          location?: string | null
           name: string
           status?: string
+          subnet?: string | null
           updated_at?: string
         }
         Update: {
@@ -44,8 +48,10 @@ export type Database = {
           id?: string
           ip_address?: string
           last_check?: string | null
+          location?: string | null
           name?: string
           status?: string
+          subnet?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -225,6 +231,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_private_ip: { Args: { ip: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"

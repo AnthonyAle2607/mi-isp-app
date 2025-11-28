@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Zap, RefreshCw, Server, Radio, Router } from "lucide-react";
+import { AlertTriangle, Zap, RefreshCw, Server, Radio, Router, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -12,35 +12,74 @@ interface NetworkFailureSimulatorProps {
 const NetworkFailureSimulator = ({ onSimulate }: NetworkFailureSimulatorProps) => {
   const [isSimulating, setIsSimulating] = useState<string | null>(null);
 
-  const simulateZoneFailure = async () => {
-    setIsSimulating('zone');
+  const simulateLocationFailure = async (location: string) => {
+    setIsSimulating('location');
     try {
-      // Get CPEs with IPs 10.255.255.100-150
-      const { data: cpes } = await supabase
+      // Get devices by location
+      const { data: devices, error } = await supabase
         .from('network_devices')
-        .select('id, ip_address')
-        .eq('device_type', 'cpe');
+        .select('id')
+        .eq('location', location);
       
-      if (cpes && cpes.length > 0) {
-        const cpeIds = cpes
-          .filter(c => {
-            const lastOctet = parseInt(c.ip_address.split('.')[3]);
-            return lastOctet >= 100 && lastOctet <= 150;
-          })
-          .map(c => c.id);
+      if (error) throw error;
+
+      if (devices && devices.length > 0) {
+        const deviceIds = devices.map(d => d.id);
+        await supabase
+          .from('network_devices')
+          .update({ status: 'offline', last_check: new Date().toISOString() })
+          .in('id', deviceIds);
         
-        if (cpeIds.length > 0) {
-          await supabase
-            .from('network_devices')
-            .update({ status: 'offline', last_check: new Date().toISOString() })
-            .in('id', cpeIds);
-          
-          toast({
-            title: "⚠️ Simulación Activada",
-            description: `${cpeIds.length} CPEs en Zona Norte ahora están offline`,
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "⚠️ Simulación Activada",
+          description: `${devices.length} dispositivos en ${location} ahora están offline`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sin dispositivos",
+          description: `No hay dispositivos configurados en ${location}`,
+        });
+      }
+      onSimulate();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo simular la falla",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSimulating(null);
+    }
+  };
+
+  const simulateSubnetFailure = async () => {
+    setIsSimulating('subnet');
+    try {
+      // Get a random subnet and fail all its devices
+      const { data: devices } = await supabase
+        .from('network_devices')
+        .select('subnet')
+        .not('subnet', 'is', null)
+        .limit(1);
+      
+      if (devices && devices.length > 0 && devices[0].subnet) {
+        const subnet = devices[0].subnet;
+        await supabase
+          .from('network_devices')
+          .update({ status: 'offline', last_check: new Date().toISOString() })
+          .eq('subnet', subnet);
+        
+        toast({
+          title: "🔴 Caída de Subred",
+          description: `Todos los dispositivos en ${subnet} están offline`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sin subredes",
+          description: "No hay subredes configuradas",
+        });
       }
       onSimulate();
     } catch (error) {
@@ -148,11 +187,22 @@ const NetworkFailureSimulator = ({ onSimulate }: NetworkFailureSimulatorProps) =
             variant="outline" 
             size="sm"
             className="border-destructive/50 text-destructive hover:bg-destructive/10"
-            onClick={simulateZoneFailure}
+            onClick={() => simulateLocationFailure('Zona Norte')}
             disabled={isSimulating !== null}
           >
-            <Router className={`h-4 w-4 mr-2 ${isSimulating === 'zone' ? 'animate-spin' : ''}`} />
-            Fallo Zona Norte (CPEs)
+            <MapPin className={`h-4 w-4 mr-2 ${isSimulating === 'location' ? 'animate-spin' : ''}`} />
+            Fallo Zona Norte
+          </Button>
+
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={simulateSubnetFailure}
+            disabled={isSimulating !== null}
+          >
+            <Router className={`h-4 w-4 mr-2 ${isSimulating === 'subnet' ? 'animate-spin' : ''}`} />
+            Fallo Subred
           </Button>
           
           <Button 
