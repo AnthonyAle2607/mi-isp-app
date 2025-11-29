@@ -7,6 +7,7 @@ import NetworkDevicesTable from "@/components/Network/NetworkDevicesTable";
 import NetworkFailureSimulator from "@/components/Network/NetworkFailureSimulator";
 import NetworkCharts from "@/components/Network/NetworkCharts";
 import NetworkDeviceModal from "@/components/Network/NetworkDeviceModal";
+import NetworkNodeDetail from "@/components/Network/NetworkNodeDetail";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -45,6 +46,7 @@ const NetworkManagement = () => {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDemoRunning, setIsDemoRunning] = useState(false);
+  const [drillDownNode, setDrillDownNode] = useState<NetworkDevice | null>(null);
   const demoIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const previousDevicesRef = useRef<NetworkDevice[]>([]);
 
@@ -275,23 +277,36 @@ const NetworkManagement = () => {
           ))}
         </div>
         
-        {/* Topology Map */}
-        <NetworkTopologyMap 
-          devices={filteredDevices} 
-          isLoading={isLoading}
-          onDeviceClick={setSelectedDevice}
-        />
-        
-        {/* Devices Table */}
-        <NetworkDevicesTable 
-          devices={filteredDevices} 
-          isLoading={isLoading} 
-          onRefresh={handleManualRefresh}
-          onDeviceClick={setSelectedDevice}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-        />
+        {/* Drill-down view OR Topology Map */}
+        {drillDownNode ? (
+          <NetworkNodeDetail
+            node={drillDownNode}
+            allDevices={devices}
+            onBack={() => setDrillDownNode(null)}
+            onDeviceClick={setSelectedDevice}
+          />
+        ) : (
+          <>
+            {/* Topology Map */}
+            <NetworkTopologyMap 
+              devices={filteredDevices} 
+              isLoading={isLoading}
+              onDeviceClick={setSelectedDevice}
+              onNodeDrillDown={setDrillDownNode}
+            />
+            
+            {/* Devices Table - only show infrastructure when not drilling down */}
+            <NetworkDevicesTable 
+              devices={filteredDevices.filter(d => d.device_type !== 'cpe')} 
+              isLoading={isLoading} 
+              onRefresh={handleManualRefresh}
+              onDeviceClick={setSelectedDevice}
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
+          </>
+        )}
 
         {/* Device Details Modal */}
         <NetworkDeviceModal
