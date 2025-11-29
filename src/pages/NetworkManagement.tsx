@@ -8,6 +8,9 @@ import NetworkFailureSimulator from "@/components/Network/NetworkFailureSimulato
 import NetworkCharts from "@/components/Network/NetworkCharts";
 import NetworkDeviceModal from "@/components/Network/NetworkDeviceModal";
 import NetworkNodeDetail from "@/components/Network/NetworkNodeDetail";
+import NetworkMiniMap from "@/components/Network/NetworkMiniMap";
+import NetworkBreadcrumbs from "@/components/Network/NetworkBreadcrumbs";
+import GlobalClientSearch from "@/components/Network/GlobalClientSearch";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -237,15 +240,38 @@ const NetworkManagement = () => {
           </div>
         </div>
 
-        {/* Global Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por nombre, IP o descripción..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+        {/* Breadcrumbs */}
+        <NetworkBreadcrumbs
+          currentNode={drillDownNode}
+          selectedDevice={selectedDevice}
+          onNavigateHome={() => { setDrillDownNode(null); setSelectedDevice(null); }}
+          onNavigateToNode={() => setSelectedDevice(null)}
+        />
+
+        {/* Global Client Search + Local Search */}
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1 max-w-md">
+            <GlobalClientSearch 
+              devices={devices}
+              onClientSelect={(client, parentNode) => {
+                if (parentNode) {
+                  setDrillDownNode(parentNode);
+                }
+                setSelectedDevice(client);
+              }}
+            />
+          </div>
+          {!drillDownNode && (
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filtrar infraestructura..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          )}
         </div>
 
         {/* Status Cards - Clickable */}
@@ -277,36 +303,56 @@ const NetworkManagement = () => {
           ))}
         </div>
         
-        {/* Drill-down view OR Topology Map */}
-        {drillDownNode ? (
-          <NetworkNodeDetail
-            node={drillDownNode}
-            allDevices={devices}
-            onBack={() => setDrillDownNode(null)}
-            onDeviceClick={setSelectedDevice}
-          />
-        ) : (
-          <>
-            {/* Topology Map */}
-            <NetworkTopologyMap 
-              devices={filteredDevices} 
-              isLoading={isLoading}
-              onDeviceClick={setSelectedDevice}
-              onNodeDrillDown={setDrillDownNode}
-            />
-            
-            {/* Devices Table - only show infrastructure when not drilling down */}
-            <NetworkDevicesTable 
-              devices={filteredDevices.filter(d => d.device_type !== 'cpe')} 
-              isLoading={isLoading} 
-              onRefresh={handleManualRefresh}
-              onDeviceClick={setSelectedDevice}
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-          </>
-        )}
+        {/* Main Content with Mini-map */}
+        <div className="flex gap-4">
+          {/* Mini-map sidebar */}
+          <div className="hidden lg:block w-48 flex-shrink-0">
+            <div className="sticky top-4">
+              <NetworkMiniMap
+                devices={devices}
+                currentLocation={drillDownNode?.location || null}
+                onLocationClick={(location) => {
+                  const node = devices.find(d => d.device_type === 'nodo' && d.location === location);
+                  if (node) setDrillDownNode(node);
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Main content area */}
+          <div className="flex-1 space-y-6">
+            {/* Drill-down view OR Topology Map */}
+            {drillDownNode ? (
+              <NetworkNodeDetail
+                node={drillDownNode}
+                allDevices={devices}
+                onBack={() => setDrillDownNode(null)}
+                onDeviceClick={setSelectedDevice}
+              />
+            ) : (
+              <>
+                {/* Topology Map */}
+                <NetworkTopologyMap 
+                  devices={filteredDevices} 
+                  isLoading={isLoading}
+                  onDeviceClick={setSelectedDevice}
+                  onNodeDrillDown={setDrillDownNode}
+                />
+                
+                {/* Devices Table - only show infrastructure when not drilling down */}
+                <NetworkDevicesTable 
+                  devices={filteredDevices.filter(d => d.device_type !== 'cpe')} 
+                  isLoading={isLoading} 
+                  onRefresh={handleManualRefresh}
+                  onDeviceClick={setSelectedDevice}
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
+                  onSort={handleSort}
+                />
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Device Details Modal */}
         <NetworkDeviceModal
