@@ -91,8 +91,8 @@ const NetworkNodeDetail = ({ node, allDevices, onBack, onDeviceClick }: NetworkN
             >
               <Icon className={`h-5 w-5 ${getIconColor(device.status)}`} />
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{device.name}</p>
-                <p className="text-xs font-mono text-muted-foreground">{device.ip_address}</p>
+                <p className="font-semibold text-sm truncate text-foreground">{device.name}</p>
+                <p className="text-xs font-mono text-primary font-medium">{device.ip_address}</p>
               </div>
               <Badge variant="outline" className="text-xs capitalize">
                 {device.status}

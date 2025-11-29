@@ -181,7 +181,7 @@ const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick, onNodeDrillDown
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div 
-                              className={`flex items-center gap-2 px-2 py-1 rounded border ${getStatusColor(device.status)} ${
+                              className={`flex items-center gap-2 px-2 py-1.5 rounded border ${getStatusColor(device.status)} ${
                                 device.status === 'online' ? 'network-pulse' : ''
                               }`}
                               onClick={(e) => {
@@ -190,8 +190,11 @@ const NetworkTopologyMap = ({ devices, isLoading, onDeviceClick, onNodeDrillDown
                               }}
                             >
                               <Icon className={`h-4 w-4 ${getIconColor(device.status)}`} />
-                              <span className="text-xs font-medium">{device.name}</span>
-                              <Badge variant="outline" className="text-[10px] px-1 py-0">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-foreground">{device.name}</span>
+                                <span className="text-[10px] font-mono text-primary">{device.ip_address}</span>
+                              </div>
+                              <Badge variant="outline" className="text-[10px] px-1 py-0 ml-1">
                                 {getTypeLabel(device.device_type)}
                               </Badge>
                             </div>
