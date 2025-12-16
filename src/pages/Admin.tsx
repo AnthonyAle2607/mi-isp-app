@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket } from 'lucide-react';
+import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from '@/components/Dashboard/EditUserDialog';
 import CreateUserDialog from '@/components/Dashboard/CreateUserDialog';
 import AdminTicketsPanel from '@/components/Dashboard/AdminTicketsPanel';
+import LiveTrafficMonitor from '@/components/Admin/LiveTrafficMonitor';
+import MassSuspension from '@/components/Admin/MassSuspension';
 
 interface Profile {
   id: string;
@@ -35,10 +37,14 @@ interface UserRole {
 const Admin = () => {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  
+  // Get tab from URL params
+  const defaultTab = searchParams.get('tab') || 'users';
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -132,11 +138,11 @@ const Admin = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/admin-home')}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver al Dashboard
+              Volver al Inicio
             </Button>
             <div>
               <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
@@ -148,23 +154,31 @@ const Admin = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Usuarios
+              <span className="hidden sm:inline">Usuarios</span>
             </TabsTrigger>
             <TabsTrigger value="tickets" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Tickets
+              <Ticket className="h-4 w-4" />
+              <span className="hidden sm:inline">Tickets</span>
+            </TabsTrigger>
+            <TabsTrigger value="traffic" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              <span className="hidden sm:inline">Tráfico</span>
+            </TabsTrigger>
+            <TabsTrigger value="suspension" className="flex items-center gap-2">
+              <Ban className="h-4 w-4" />
+              <span className="hidden sm:inline">Cortes</span>
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
-              Estadísticas
+              <span className="hidden sm:inline">Estadísticas</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              Configuración
+              <span className="hidden sm:inline">Config</span>
             </TabsTrigger>
           </TabsList>
 
@@ -236,6 +250,14 @@ const Admin = () => {
 
           <TabsContent value="tickets" className="space-y-6">
             <AdminTicketsPanel />
+          </TabsContent>
+
+          <TabsContent value="traffic" className="space-y-6">
+            <LiveTrafficMonitor />
+          </TabsContent>
+
+          <TabsContent value="suspension" className="space-y-6">
+            <MassSuspension />
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">

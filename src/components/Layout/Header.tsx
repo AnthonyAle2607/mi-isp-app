@@ -56,10 +56,10 @@ const Header = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
-                onClick={() => navigate('/admin')}
+                onClick={() => navigate('/admin-home')}
                 className="text-foreground border-border/50 hover:bg-secondary hidden sm:flex text-xs"
               >
-                Panel Admin
+                Inicio Admin
               </Button>
             </>
           )}
