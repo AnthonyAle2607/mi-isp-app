@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [profileData, setProfileData] = useState({
     plan_type: 'basic',
@@ -35,7 +35,11 @@ const Index = () => {
     if (!loading && !user) {
       navigate('/auth');
     }
-  }, [user, loading, navigate]);
+    // Redirigir admins a su dashboard específico
+    if (!loading && user && isAdmin) {
+      navigate('/admin-home');
+    }
+  }, [user, isAdmin, loading, navigate]);
 
   useEffect(() => {
     if (user) {
