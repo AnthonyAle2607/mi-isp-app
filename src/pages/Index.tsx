@@ -10,6 +10,7 @@ import DataUsage from "@/components/Dashboard/DataUsage";
 import PaymentMethods from "@/components/Dashboard/PaymentMethods";
 import SupportTickets from "@/components/Dashboard/SupportTickets";
 import AccountStatus from "@/components/Dashboard/AccountStatus";
+import SupportChatbot from "@/components/Dashboard/SupportChatbot";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -226,6 +227,9 @@ const Index = () => {
           </div>
         </div>
       </main>
+      
+      {/* Chatbot de soporte con IA */}
+      <SupportChatbot />
     </div>
   );
 };
