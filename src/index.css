@@ -8,108 +8,109 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
+    /* Silverdata Brand Colors - Deep Navy & Vibrant Orange */
+    --background: 216 71% 8%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 216 71% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 216 71% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 216 50% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 216 50% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 217 91% 60%;
+    --border: 216 50% 20%;
+    --input: 216 50% 18%;
+    --ring: 24 95% 53%;
 
-    /* ISP Theme Colors */
-    --tech-blue: 217 91% 60%;
-    --tech-blue-dark: 217 91% 45%;
+    /* Silverdata Brand Theme */
+    --silverdata-navy: 216 71% 12%;
+    --silverdata-navy-dark: 216 71% 8%;
+    --silverdata-orange: 24 95% 53%;
+    --silverdata-orange-light: 24 95% 60%;
+    --tech-blue: 210 100% 50%;
+    --tech-blue-dark: 210 100% 40%;
     --success-green: 142 76% 36%;
     --success-green-light: 142 76% 50%;
-    --warning-orange: 38 92% 50%;
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 45%));
-    --gradient-card: linear-gradient(145deg, hsl(240 10% 3.9%), hsl(240 5% 6%));
-    --shadow-glow: 0 0 40px hsl(217 91% 60% / 0.3);
-    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.3);
+    --warning-orange: 24 95% 53%;
+    --gradient-primary: linear-gradient(135deg, hsl(216 71% 12%), hsl(216 71% 8%));
+    --gradient-silverdata: linear-gradient(135deg, hsl(216 71% 15%), hsl(216 71% 5%));
+    --gradient-accent: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 45%));
+    --gradient-card: linear-gradient(145deg, hsl(216 71% 12%), hsl(216 71% 8%));
+    --shadow-glow: 0 0 40px hsl(24 95% 53% / 0.3);
+    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
 
     /* Network Status Colors */
-    --network-online: 134 61% 65%;
-    --network-online-bg: 134 61% 85%;
-    --network-offline: 0 72% 71%;
+    --network-online: 142 76% 50%;
+    --network-online-bg: 142 76% 85%;
+    --network-offline: 0 72% 55%;
     --network-offline-bg: 0 72% 89%;
-    --network-maintenance: 45 100% 72%;
+    --network-maintenance: 45 100% 60%;
     --network-maintenance-bg: 45 100% 90%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 216 71% 10%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 216 50% 18%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 216 50% 20%;
+    --sidebar-ring: 24 95% 53%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 216 71% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 216 71% 8%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 216 71% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 216 50% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 216 50% 15%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 216 50% 18%;
+    --input: 216 50% 15%;
+    --ring: 24 95% 53%;
+    
+    --sidebar-background: 216 71% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 216 50% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 216 50% 18%;
+    --sidebar-ring: 24 95% 53%;
   }
 }
 

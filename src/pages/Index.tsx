@@ -81,15 +81,18 @@ const Index = () => {
     return null;
   }
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(216,71%,6%)] via-background to-[hsl(216,71%,12%)]">
       <Header />
       
       <main className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-4 sm:space-y-8">
         {/* Welcome Section */}
         <div className="space-y-1 sm:space-y-2">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">Bienvenido a tu Portal ISP</h1>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+            <span className="text-white">Bienvenido a </span>
+            <span className="text-primary">Silverdata</span>
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Gestiona tu conexión, pagos y servicios desde un solo lugar
+            Internet ilimitado para toda la familia • Estabilidad garantizada
           </p>
         </div>
 

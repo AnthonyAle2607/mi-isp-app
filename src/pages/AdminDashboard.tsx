@@ -84,15 +84,16 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(216,71%,6%)] via-background to-[hsl(216,71%,12%)]">
       <Header />
       
       <main className="container mx-auto px-3 sm:px-6 py-4 sm:py-8 space-y-6">
         {/* Welcome Section */}
         <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-3">
             <Shield className="h-8 w-8 text-primary" />
-            Centro de Administración
+            <span className="text-white">Centro de Administración</span>
+            <span className="text-primary">Silverdata</span>
           </h1>
           <p className="text-muted-foreground">
             Gestiona todos los aspectos de tu ISP desde un solo lugar
