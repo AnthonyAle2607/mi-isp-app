@@ -13,7 +13,7 @@ const SupportChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "¡Hola! 👋 Soy el asistente virtual de soporte. ¿En qué puedo ayudarte hoy?" }
+    { role: "assistant", content: "¡Hola! 👋 Soy Silvia, tu asistente virtual de Silverdata. ¿En qué puedo ayudarte hoy?" }
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -102,7 +102,7 @@ const SupportChatbot = () => {
     setIsLoading(true);
 
     try {
-      await streamChat(newMessages.filter(m => m.content !== "¡Hola! 👋 Soy el asistente virtual de soporte. ¿En qué puedo ayudarte hoy?"));
+      await streamChat(newMessages.filter(m => m.content !== "¡Hola! 👋 Soy Silvia, tu asistente virtual de Silverdata. ¿En qué puedo ayudarte hoy?"));
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { 
@@ -122,10 +122,10 @@ const SupportChatbot = () => {
   };
 
   const quickActions = [
+    "¿Cuáles son los planes?",
     "Mi internet está lento",
     "No tengo conexión",
-    "¿Cuándo debo pagar?",
-    "Cambiar contraseña WiFi"
+    "Cambiar mi plan"
   ];
 
   if (!isOpen) {
@@ -144,11 +144,16 @@ const SupportChatbot = () => {
     <Card className={`fixed bottom-6 right-6 z-50 shadow-2xl transition-all duration-300 ${
       isMinimized ? 'w-72 h-14' : 'w-96 h-[500px]'
     }`}>
-      <CardHeader className="p-3 bg-primary text-primary-foreground rounded-t-lg flex flex-row items-center justify-between">
+      <CardHeader className="p-3 bg-gradient-to-r from-[hsl(216,71%,12%)] to-[hsl(216,71%,18%)] text-white rounded-t-lg flex flex-row items-center justify-between border-b border-primary/30">
         <div className="flex items-center gap-2">
-          <Bot className="h-5 w-5" />
-          <CardTitle className="text-sm font-medium">Soporte ISP</CardTitle>
-          {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+            <Bot className="h-4 w-4 text-white" />
+          </div>
+          <div>
+            <CardTitle className="text-sm font-bold">Silvia</CardTitle>
+            <p className="text-xs text-white/70">Asistente Silverdata</p>
+          </div>
+          {isLoading && <Loader2 className="h-4 w-4 animate-spin ml-2" />}
         </div>
         <div className="flex gap-1">
           <Button 
