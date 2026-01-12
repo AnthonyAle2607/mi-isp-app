@@ -189,17 +189,27 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-primary flex items-center justify-center p-2 sm:p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(216,71%,6%)] via-[hsl(216,71%,10%)] to-[hsl(216,71%,15%)] flex items-center justify-center p-2 sm:p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <div className="flex justify-center items-center gap-2 mb-3 sm:mb-4">
-            <Wifi className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-            <h1 className="text-2xl sm:text-3xl font-bold text-white">SilverData</h1>
+            <img 
+              src="/silverdata-logo.png" 
+              alt="Silverdata Logo" 
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-lg"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-wide">
+              <span className="text-white">SILVER</span>
+              <span className="text-primary">DATA</span>
+            </h1>
           </div>
-          <p className="text-sm sm:text-base text-white/80">Plataforma de Autogestión ISP</p>
+          <p className="text-sm sm:text-base text-white/80">Internet ilimitado para toda la familia</p>
         </div>
 
-        <Card className="backdrop-blur-sm bg-white/10 border-white/20">
+        <Card className="backdrop-blur-sm bg-[hsl(216,71%,12%)]/80 border-white/10 shadow-2xl">
           <CardHeader className="text-center px-4 sm:px-6">
             <CardTitle className="text-lg sm:text-xl text-white">
               {showResetForm ? "Recuperar Contraseña" : showNewPasswordForm ? "Nueva Contraseña" : showVerificationChoice ? "Verificar Cuenta" : showOtpForm ? "Verificar Código" : "Acceso al Portal"}
