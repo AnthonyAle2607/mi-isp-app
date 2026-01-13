@@ -68,7 +68,16 @@ const SupportChatbot = () => {
     const ticketMatch = content.match(/\[CREAR_TICKET:(\w+):([^:]+):([^\]]+)\]/);
     if (ticketMatch) {
       const [, type, title, description] = ticketMatch;
-      await createTicketFromChat(type, title, description);
+      // Map AI types to valid database values
+      const typeMap: Record<string, string> = {
+        'technical_support': 'technical',
+        'technical': 'technical',
+        'billing': 'billing',
+        'service_request': 'service',
+        'service': 'service'
+      };
+      const validType = typeMap[type] || 'technical';
+      await createTicketFromChat(validType, title, description);
       return content.replace(/\[CREAR_TICKET:[^\]]+\]/, '').trim();
     }
     return content;
