@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Loader2 } from 'lucide-react';
 
 interface CreateUserDialogProps {
   onUserCreated: () => void;
@@ -15,6 +15,7 @@ interface CreateUserDialogProps {
 const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [generatingContract, setGeneratingContract] = useState(false);
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -28,6 +29,46 @@ const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
     planType: 'basic',
     accountStatus: 'active'
   });
+
+  // Generate next contract number when dialog opens
+  const generateContractNumber = async () => {
+    setGeneratingContract(true);
+    try {
+      // Get the highest contract number
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('contract_number')
+        .not('contract_number', 'is', null)
+        .like('contract_number', 'CT-%')
+        .order('contract_number', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      let nextNumber = 1;
+      if (data && data.length > 0 && data[0].contract_number) {
+        // Extract number from CT-00001 format
+        const match = data[0].contract_number.match(/CT-(\d+)/);
+        if (match) {
+          nextNumber = parseInt(match[1], 10) + 1;
+        }
+      }
+
+      // Format as CT-00001
+      const contractNumber = `CT-${nextNumber.toString().padStart(5, '0')}`;
+      setFormData(prev => ({ ...prev, contractNumber }));
+    } catch (error) {
+      console.error('Error generating contract number:', error);
+    } finally {
+      setGeneratingContract(false);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      generateContractNumber();
+    }
+  }, [open]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -170,12 +211,18 @@ const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="contractNumber">Número de Contrato</Label>
-              <Input
-                id="contractNumber"
-                placeholder="CTR-2024-001"
-                value={formData.contractNumber}
-                onChange={(e) => handleInputChange('contractNumber', e.target.value)}
-              />
+              <div className="flex items-center gap-2">
+                <Input
+                  id="contractNumber"
+                  value={formData.contractNumber}
+                  disabled
+                  className="bg-muted font-mono"
+                />
+                {generatingContract && <Loader2 className="h-4 w-4 animate-spin" />}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Generado automáticamente
+              </p>
             </div>
           </div>
 
