@@ -3,7 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageCircle, Send, X, Bot, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageCircle, Send, X, Bot, User, Loader2, Minimize2, Maximize2, Ticket } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -17,8 +19,60 @@ const SupportChatbot = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [ticketCreated, setTicketCreated] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const createTicketFromChat = async (ticketType: string, title: string, description: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "Debes iniciar sesión para crear un ticket",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      const { error } = await supabase.from('support_tickets').insert({
+        user_id: user.id,
+        ticket_type: ticketType,
+        title: title,
+        description: `[Creado por Silvia] ${description}`,
+        priority: 'medium',
+        status: 'open'
+      });
+
+      if (error) throw error;
+
+      setTicketCreated(true);
+      toast({
+        title: "✅ Ticket creado",
+        description: "Tu solicitud ha sido registrada. Un técnico te contactará pronto.",
+      });
+      return true;
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el ticket. Intenta de nuevo.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const parseAndCreateTicket = async (content: string) => {
+    const ticketMatch = content.match(/\[CREAR_TICKET:(\w+):([^:]+):([^\]]+)\]/);
+    if (ticketMatch) {
+      const [, type, title, description] = ticketMatch;
+      await createTicketFromChat(type, title, description);
+      return content.replace(/\[CREAR_TICKET:[^\]]+\]/, '').trim();
+    }
+    return content;
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -89,6 +143,18 @@ const SupportChatbot = () => {
           break;
         }
       }
+    }
+
+    // Process ticket creation after streaming completes
+    if (assistantContent.includes('[CREAR_TICKET:')) {
+      const cleanedContent = await parseAndCreateTicket(assistantContent);
+      setMessages(prev => {
+        return prev.map((m, i) => 
+          i === prev.length - 1 && m.role === "assistant" 
+            ? { ...m, content: cleanedContent || "He creado un ticket de soporte para tu caso. Un técnico te contactará pronto. 📋" } 
+            : m
+        );
+      });
     }
   };
 
