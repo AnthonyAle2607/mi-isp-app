@@ -1,32 +1,16 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Zap, Server, ChevronDown, MapPin } from "lucide-react";
+import { Zap, Download, Upload, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import SpeedTestGauge from "./SpeedTestGauge";
-import SpeedTestChart from "./SpeedTestChart";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  LIBRESPEED_SERVERS,
-  LibreSpeedServer,
-  getServerUrl,
-  measurePingToServer,
-  findBestServer,
-} from "@/lib/librespeed";
+import { Progress } from "@/components/ui/progress";
 
-type TestPhase = 'idle' | 'selecting' | 'ping' | 'download' | 'upload' | 'complete';
+type TestPhase = 'idle' | 'ping' | 'download' | 'upload' | 'complete';
 
 const SpeedTest = () => {
   const [phase, setPhase] = useState<TestPhase>('idle');
-  const [selectedServer, setSelectedServer] = useState<LibreSpeedServer | null>(null);
   const [currentSpeed, setCurrentSpeed] = useState(0);
-  const [downloadData, setDownloadData] = useState<number[]>([]);
-  const [uploadData, setUploadData] = useState<number[]>([]);
+  const [progress, setProgress] = useState(0);
   const [results, setResults] = useState({
     download: 0,
     upload: 0,
@@ -35,8 +19,14 @@ const SpeedTest = () => {
   const { toast } = useToast();
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const measurePing = useCallback(async (server: LibreSpeedServer): Promise<number> => {
-    const url = getServerUrl(server, 'ping');
+  // Animated needle rotation (0-270 degrees)
+  const getNeedleRotation = () => {
+    const maxSpeed = 500; // Scale max
+    const percentage = Math.min(currentSpeed / maxSpeed, 1);
+    return -135 + (percentage * 270); // Start at -135deg, end at 135deg
+  };
+
+  const measurePing = useCallback(async (): Promise<number> => {
     const iterations = 5;
     let totalPing = 0;
     let successfulPings = 0;
@@ -47,7 +37,7 @@ const SpeedTest = () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
         
-        await fetch(`${url}?r=${Math.random()}`, { 
+        await fetch('https://speed.cloudflare.com/__down?bytes=0', { 
           method: 'GET',
           cache: 'no-cache',
           mode: 'cors',
@@ -66,17 +56,13 @@ const SpeedTest = () => {
     return successfulPings > 0 ? totalPing / successfulPings : 100;
   }, []);
 
-  const measureDownload = useCallback(async (server: LibreSpeedServer): Promise<number> => {
-    const url = getServerUrl(server, 'dl');
-    const testDuration = 8000; // 8 seconds
-    const chunkSize = 25 * 1024 * 1024; // 25MB chunks
+  const measureDownload = useCallback(async (): Promise<number> => {
+    const testDuration = 10000; // 10 seconds
+    const chunkSize = 10 * 1024 * 1024; // 10MB chunks
     const startTime = performance.now();
     let totalBytes = 0;
     const speedSamples: number[] = [];
-    let lastSampleTime = startTime;
-    let lastBytes = 0;
 
-    setDownloadData([]);
     abortControllerRef.current = new AbortController();
 
     try {
@@ -84,7 +70,7 @@ const SpeedTest = () => {
         const chunkStart = performance.now();
         
         try {
-          const response = await fetch(`${url}?ckSize=${chunkSize}&r=${Math.random()}`, {
+          const response = await fetch(`https://speed.cloudflare.com/__down?bytes=${chunkSize}`, {
             method: 'GET',
             cache: 'no-cache',
             mode: 'cors',
@@ -92,30 +78,20 @@ const SpeedTest = () => {
           });
 
           if (!response.ok) continue;
+          await response.arrayBuffer();
 
-          const reader = response.body?.getReader();
-          if (!reader) continue;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            totalBytes += value?.length || 0;
-
-            // Update speed every 200ms
-            const now = performance.now();
-            if (now - lastSampleTime >= 200) {
-              const duration = (now - lastSampleTime) / 1000;
-              const bytesInPeriod = totalBytes - lastBytes;
-              const speedMbps = (bytesInPeriod * 8) / (duration * 1000000);
-              
-              speedSamples.push(speedMbps);
-              setCurrentSpeed(speedMbps);
-              setDownloadData(prev => [...prev.slice(-49), speedMbps]);
-              
-              lastSampleTime = now;
-              lastBytes = totalBytes;
-            }
-          }
+          const chunkEnd = performance.now();
+          totalBytes += chunkSize;
+          
+          const duration = (chunkEnd - chunkStart) / 1000;
+          const speedMbps = (chunkSize * 8) / (duration * 1000000);
+          
+          speedSamples.push(speedMbps);
+          setCurrentSpeed(speedMbps);
+          
+          // Update progress (download is 33-66%)
+          const elapsed = performance.now() - startTime;
+          setProgress(33 + (elapsed / testDuration) * 33);
         } catch (error: unknown) {
           if (error instanceof Error && error.name === 'AbortError') break;
         }
@@ -124,7 +100,7 @@ const SpeedTest = () => {
       // Test interrupted
     }
 
-    // Calculate average, excluding lowest 10% and highest 10%
+    // Calculate trimmed mean
     if (speedSamples.length > 5) {
       const sorted = [...speedSamples].sort((a, b) => a - b);
       const trimCount = Math.floor(sorted.length * 0.1);
@@ -137,17 +113,13 @@ const SpeedTest = () => {
       : 0;
   }, []);
 
-  const measureUpload = useCallback(async (server: LibreSpeedServer): Promise<number> => {
-    const url = getServerUrl(server, 'ul');
-    const testDuration = 8000; // 8 seconds
+  const measureUpload = useCallback(async (): Promise<number> => {
+    const testDuration = 10000; // 10 seconds
     const chunkSize = 2 * 1024 * 1024; // 2MB chunks
     const startTime = performance.now();
-    let totalBytes = 0;
     const speedSamples: number[] = [];
 
-    setUploadData([]);
     abortControllerRef.current = new AbortController();
-
     const testData = new ArrayBuffer(chunkSize);
     const blob = new Blob([testData]);
 
@@ -156,7 +128,7 @@ const SpeedTest = () => {
         const chunkStart = performance.now();
         
         try {
-          await fetch(`${url}?r=${Math.random()}`, {
+          await fetch('https://speed.cloudflare.com/__up', {
             method: 'POST',
             body: blob,
             cache: 'no-cache',
@@ -165,14 +137,16 @@ const SpeedTest = () => {
           });
 
           const chunkEnd = performance.now();
-          totalBytes += chunkSize;
           
           const duration = (chunkEnd - chunkStart) / 1000;
           const speedMbps = (chunkSize * 8) / (duration * 1000000);
           
           speedSamples.push(speedMbps);
           setCurrentSpeed(speedMbps);
-          setUploadData(prev => [...prev.slice(-49), speedMbps]);
+          
+          // Update progress (upload is 66-100%)
+          const elapsed = performance.now() - startTime;
+          setProgress(66 + (elapsed / testDuration) * 34);
         } catch (error: unknown) {
           if (error instanceof Error && error.name === 'AbortError') break;
         }
@@ -181,7 +155,7 @@ const SpeedTest = () => {
       // Test interrupted
     }
 
-    // Calculate average, excluding lowest 10% and highest 10%
+    // Calculate trimmed mean
     if (speedSamples.length > 5) {
       const sorted = [...speedSamples].sort((a, b) => a - b);
       const trimCount = Math.floor(sorted.length * 0.1);
@@ -195,35 +169,30 @@ const SpeedTest = () => {
   }, []);
 
   const runSpeedTest = async () => {
-    setPhase('selecting');
+    setPhase('ping');
     setResults({ download: 0, upload: 0, ping: 0 });
-    setDownloadData([]);
-    setUploadData([]);
     setCurrentSpeed(0);
+    setProgress(0);
 
     try {
-      // Select best server if not manually selected
-      let server = selectedServer;
-      if (!server) {
-        server = await findBestServer(LIBRESPEED_SERVERS);
-        setSelectedServer(server);
-      }
-
-      // Measure ping
-      setPhase('ping');
-      const ping = await measurePing(server);
+      // Measure ping (0-33%)
+      setProgress(10);
+      const ping = await measurePing();
       setResults(prev => ({ ...prev, ping: Math.round(ping) }));
+      setProgress(33);
 
-      // Measure download
+      // Measure download (33-66%)
       setPhase('download');
-      const download = await measureDownload(server);
+      const download = await measureDownload();
       setResults(prev => ({ ...prev, download: Math.round(download * 10) / 10 }));
       setCurrentSpeed(0);
+      setProgress(66);
 
-      // Measure upload
+      // Measure upload (66-100%)
       setPhase('upload');
-      const upload = await measureUpload(server);
+      const upload = await measureUpload();
       setResults(prev => ({ ...prev, upload: Math.round(upload * 10) / 10 }));
+      setProgress(100);
 
       setPhase('complete');
       toast({
@@ -244,159 +213,172 @@ const SpeedTest = () => {
   const stopTest = () => {
     abortControllerRef.current?.abort();
     setPhase('idle');
+    setProgress(0);
+    setCurrentSpeed(0);
   };
 
   const isRunning = phase !== 'idle' && phase !== 'complete';
-  const maxSpeed = 1000; // 1 Gbps scale
+
+  // Speed gauge color based on value
+  const getSpeedColor = () => {
+    if (currentSpeed < 10) return '#ef4444'; // red
+    if (currentSpeed < 30) return '#f97316'; // orange
+    if (currentSpeed < 50) return '#eab308'; // yellow
+    if (currentSpeed < 100) return '#22c55e'; // green
+    return '#06b6d4'; // cyan for high speeds
+  };
 
   return (
-    <Card className="p-4 sm:p-6 bg-gradient-to-br from-[#0a1929] to-[#0d2137] border-[#1a3a52] overflow-hidden">
-      <div className="space-y-4">
+    <Card className="p-6 bg-card border-border">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-cyan-500/20 rounded-lg">
-              <Zap className="h-5 w-5 text-cyan-400" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Zap className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Prueba de Velocidad</h3>
-              <p className="text-sm text-slate-400">LibreSpeed - Test real de conexión</p>
+              <h3 className="text-lg font-semibold text-foreground">Prueba de Velocidad</h3>
+              <p className="text-sm text-muted-foreground">Servidor: Cloudflare (Global CDN)</p>
             </div>
           </div>
+        </div>
 
-          {/* Server selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto bg-slate-800/50 border-slate-600 text-slate-200 hover:bg-slate-700">
-                <Server className="h-4 w-4 mr-2 text-cyan-400" />
-                <span className="truncate max-w-[150px]">
-                  {selectedServer ? selectedServer.name.split(' (')[0] : 'Auto-selección'}
-                </span>
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64 bg-slate-800 border-slate-600">
-              <DropdownMenuItem 
-                onClick={() => setSelectedServer(null)}
-                className="text-slate-200 hover:bg-slate-700 focus:bg-slate-700"
+        {/* Speed Gauge */}
+        <div className="flex justify-center py-4">
+          <div className="relative w-64 h-40">
+            {/* Gauge background */}
+            <svg viewBox="0 0 200 120" className="w-full h-full">
+              {/* Background arc */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="hsl(var(--secondary))"
+                strokeWidth="12"
+                strokeLinecap="round"
+              />
+              
+              {/* Colored segments */}
+              <path
+                d="M 20 100 A 80 80 0 0 1 50 40"
+                fill="none"
+                stroke="#ef4444"
+                strokeWidth="12"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 50 40 A 80 80 0 0 1 100 20"
+                fill="none"
+                stroke="#f97316"
+                strokeWidth="12"
+              />
+              <path
+                d="M 100 20 A 80 80 0 0 1 150 40"
+                fill="none"
+                stroke="#22c55e"
+                strokeWidth="12"
+              />
+              <path
+                d="M 150 40 A 80 80 0 0 1 180 100"
+                fill="none"
+                stroke="#06b6d4"
+                strokeWidth="12"
+                strokeLinecap="round"
+              />
+
+              {/* Needle */}
+              <g transform={`rotate(${getNeedleRotation()}, 100, 100)`}>
+                <line
+                  x1="100"
+                  y1="100"
+                  x2="100"
+                  y2="35"
+                  stroke={getSpeedColor()}
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className="transition-transform duration-200"
+                />
+                <circle cx="100" cy="100" r="8" fill={getSpeedColor()} />
+                <circle cx="100" cy="100" r="4" fill="hsl(var(--card))" />
+              </g>
+
+              {/* Labels */}
+              <text x="25" y="115" fill="hsl(var(--muted-foreground))" fontSize="10">0</text>
+              <text x="95" y="18" fill="hsl(var(--muted-foreground))" fontSize="10">250</text>
+              <text x="170" y="115" fill="hsl(var(--muted-foreground))" fontSize="10">500</text>
+            </svg>
+
+            {/* Speed display */}
+            <div className="absolute inset-0 flex flex-col items-center justify-end pb-2">
+              <span 
+                className="text-4xl font-bold transition-colors duration-200"
+                style={{ color: getSpeedColor() }}
               >
-                <MapPin className="h-4 w-4 mr-2 text-cyan-400" />
-                Auto-selección (mejor ping)
-              </DropdownMenuItem>
-              {LIBRESPEED_SERVERS.map((server) => (
-                <DropdownMenuItem
-                  key={server.id}
-                  onClick={() => setSelectedServer(server)}
-                  className="text-slate-200 hover:bg-slate-700 focus:bg-slate-700"
-                >
-                  <Server className="h-4 w-4 mr-2 text-slate-400" />
-                  <span className="truncate">{server.name}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Main content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Gauge */}
-          <div className="flex flex-col items-center justify-center bg-slate-900/50 rounded-xl p-4">
-            <SpeedTestGauge
-              value={currentSpeed}
-              maxValue={maxSpeed}
-              isDownload={phase === 'download'}
-              isActive={isRunning}
-              label={
-                phase === 'selecting' ? 'Seleccionando servidor...' :
-                phase === 'ping' ? 'Midiendo ping...' :
-                phase === 'download' ? 'Recibiendo datos...' :
-                phase === 'upload' ? 'Enviando datos...' :
-                phase === 'complete' ? 'Completado' :
-                'Listo para iniciar'
-              }
-            />
-
-            {/* Progress indicator */}
-            {isRunning && (
-              <div className="mt-2 text-center">
-                <span className={`text-lg font-semibold ${phase === 'download' ? 'text-cyan-400' : 'text-green-400'}`}>
-                  {Math.round((
-                    (phase === 'ping' ? 10 : phase === 'download' ? 50 : 90)
-                  ))}%
-                </span>
-              </div>
-            )}
-
-            {/* Start/Stop button */}
-            <Button
-              onClick={isRunning ? stopTest : runSpeedTest}
-              className={`mt-4 px-8 py-2 ${
-                isRunning 
-                  ? 'bg-red-600 hover:bg-red-700' 
-                  : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500'
-              }`}
-              size="lg"
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              {isRunning ? 'Detener' : 'Iniciar Prueba'}
-            </Button>
-          </div>
-
-          {/* Charts and results */}
-          <div className="flex flex-col gap-3">
-            {/* Download chart */}
-            <div className="bg-slate-900/50 rounded-xl p-3">
-              <SpeedTestChart
-                data={downloadData}
-                isDownload={true}
-                label="Descargar"
-              />
+                {currentSpeed.toFixed(1)}
+              </span>
+              <span className="text-sm text-muted-foreground">Mb/s</span>
+              <span className="text-xs text-muted-foreground mt-1">
+                {phase === 'idle' ? 'Listo' :
+                 phase === 'ping' ? 'Midiendo latencia...' :
+                 phase === 'download' ? 'Descargando...' :
+                 phase === 'upload' ? 'Subiendo...' :
+                 'Completado'}
+              </span>
             </div>
-
-            {/* Upload chart */}
-            <div className="bg-slate-900/50 rounded-xl p-3">
-              <SpeedTestChart
-                data={uploadData}
-                isDownload={false}
-                label="Cargar"
-              />
-            </div>
-
-            {/* Selected server info */}
-            {selectedServer && (
-              <div className="bg-slate-800/50 rounded-lg p-3 flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <Server className="h-4 w-4 text-cyan-400" />
-                  <span className="text-slate-300">{selectedServer.name}</span>
-                </div>
-                {selectedServer.sponsorName && (
-                  <span className="text-slate-500">{selectedServer.sponsorName}</span>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Results footer */}
-        {(phase === 'complete' || results.download > 0 || results.upload > 0 || results.ping > 0) && (
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-700/50">
-            <div className="text-center p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-              <p className="text-xs text-cyan-300 mb-1">Descarga</p>
-              <p className="text-xl font-bold text-cyan-400">{results.download.toFixed(1)}</p>
-              <p className="text-xs text-slate-400">Mbps</p>
-            </div>
-            <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-              <p className="text-xs text-green-300 mb-1">Subida</p>
-              <p className="text-xl font-bold text-green-400">{results.upload.toFixed(1)}</p>
-              <p className="text-xs text-slate-400">Mbps</p>
-            </div>
-            <div className="text-center p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-              <p className="text-xs text-blue-300 mb-1">Ping</p>
-              <p className="text-xl font-bold text-blue-400">{results.ping}</p>
-              <p className="text-xs text-slate-400">ms</p>
+        {/* Progress bar */}
+        {isRunning && (
+          <div className="space-y-2">
+            <Progress value={progress} className="h-2" />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Ping</span>
+              <span>Descarga</span>
+              <span>Subida</span>
             </div>
           </div>
         )}
+
+        {/* Start/Stop button */}
+        <div className="flex justify-center">
+          <Button
+            onClick={isRunning ? stopTest : runSpeedTest}
+            size="lg"
+            className={`px-8 ${
+              isRunning 
+                ? 'bg-destructive hover:bg-destructive/90' 
+                : 'bg-primary hover:bg-primary/90'
+            }`}
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            {isRunning ? 'Detener' : 'Iniciar Prueba'}
+          </Button>
+        </div>
+
+        {/* Results */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center p-4 bg-secondary/30 rounded-lg border border-border">
+            <Download className="h-5 w-5 text-success-green mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">Descarga</p>
+            <p className="text-xl font-bold text-foreground">{results.download.toFixed(1)}</p>
+            <p className="text-xs text-muted-foreground">Mbps</p>
+          </div>
+          
+          <div className="text-center p-4 bg-secondary/30 rounded-lg border border-border">
+            <Upload className="h-5 w-5 text-warning-orange mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">Subida</p>
+            <p className="text-xl font-bold text-foreground">{results.upload.toFixed(1)}</p>
+            <p className="text-xs text-muted-foreground">Mbps</p>
+          </div>
+          
+          <div className="text-center p-4 bg-secondary/30 rounded-lg border border-border">
+            <Activity className="h-5 w-5 text-tech-blue mx-auto mb-2" />
+            <p className="text-xs text-muted-foreground mb-1">Ping</p>
+            <p className="text-xl font-bold text-foreground">{results.ping}</p>
+            <p className="text-xs text-muted-foreground">ms</p>
+          </div>
+        </div>
       </div>
     </Card>
   );
