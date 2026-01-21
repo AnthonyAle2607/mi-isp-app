@@ -96,50 +96,130 @@ export type Database = {
         Row: {
           account_status: string | null
           address: string | null
+          birth_date: string | null
+          calle: string | null
+          casa: string | null
+          cedula: string | null
+          cedula_type: string | null
+          connection_type: string | null
           contract_number: string | null
           created_at: string
+          estado: string | null
           full_name: string | null
+          gender: string | null
           id: string
           installation_date: string | null
           ip_address: string | null
           last_payment_date: string | null
+          municipio: string | null
           next_billing_date: string | null
+          parroquia: string | null
+          pending_balance: number | null
+          permanence_months: number | null
           phone: string | null
+          plan_id: string | null
           plan_type: string | null
+          sector: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           account_status?: string | null
           address?: string | null
+          birth_date?: string | null
+          calle?: string | null
+          casa?: string | null
+          cedula?: string | null
+          cedula_type?: string | null
+          connection_type?: string | null
           contract_number?: string | null
           created_at?: string
+          estado?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           installation_date?: string | null
           ip_address?: string | null
           last_payment_date?: string | null
+          municipio?: string | null
           next_billing_date?: string | null
+          parroquia?: string | null
+          pending_balance?: number | null
+          permanence_months?: number | null
           phone?: string | null
+          plan_id?: string | null
           plan_type?: string | null
+          sector?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           account_status?: string | null
           address?: string | null
+          birth_date?: string | null
+          calle?: string | null
+          casa?: string | null
+          cedula?: string | null
+          cedula_type?: string | null
+          connection_type?: string | null
           contract_number?: string | null
           created_at?: string
+          estado?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
           installation_date?: string | null
           ip_address?: string | null
           last_payment_date?: string | null
+          municipio?: string | null
           next_billing_date?: string | null
+          parroquia?: string | null
+          pending_balance?: number | null
+          permanence_months?: number | null
           phone?: string | null
+          plan_id?: string | null
           plan_type?: string | null
+          sector?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "service_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_plans: {
+        Row: {
+          connection_type: string
+          created_at: string
+          id: string
+          is_active: boolean
+          monthly_price: number
+          name: string
+          speed_mbps: number
+        }
+        Insert: {
+          connection_type: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          monthly_price: number
+          name: string
+          speed_mbps: number
+        }
+        Update: {
+          connection_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          monthly_price?: number
+          name?: string
+          speed_mbps?: number
         }
         Relationships: []
       }

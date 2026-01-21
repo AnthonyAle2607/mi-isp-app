@@ -11,6 +11,8 @@ import PaymentMethods from "@/components/Dashboard/PaymentMethods";
 import SupportTickets from "@/components/Dashboard/SupportTickets";
 import AccountStatus from "@/components/Dashboard/AccountStatus";
 import SupportChatbot from "@/components/Dashboard/SupportChatbot";
+import ChangePlanDialog from "@/components/Dashboard/ChangePlanDialog";
+import CancelServiceDialog from "@/components/Dashboard/CancelServiceDialog";
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -24,19 +26,34 @@ import {
   UserX
 } from "lucide-react";
 
+interface ProfileData {
+  plan_type: string;
+  contract_number: string;
+  pending_balance: number;
+  plan_id: string | null;
+  connection_type: 'fibra' | 'radio';
+  next_billing_date: string | null;
+}
+
 const Index = () => {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState({
+  const [profileData, setProfileData] = useState<ProfileData>({
     plan_type: 'basic',
-    contract_number: ''
+    contract_number: '',
+    pending_balance: 0,
+    plan_id: null,
+    connection_type: 'fibra',
+    next_billing_date: null
   });
+  const [lastSpeedTest, setLastSpeedTest] = useState<number | null>(null);
+  const [changePlanOpen, setChangePlanOpen] = useState(false);
+  const [cancelServiceOpen, setCancelServiceOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate('/auth');
     }
-    // Redirigir admins a su dashboard específico
     if (!loading && user && isAdmin) {
       navigate('/admin-home');
     }
@@ -52,7 +69,7 @@ const Index = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, contract_number')
+        .select('plan_type, contract_number, pending_balance, plan_id, connection_type, next_billing_date')
         .eq('user_id', user?.id)
         .single();
 
@@ -60,13 +77,29 @@ const Index = () => {
       
       if (data) {
         setProfileData({
-          plan_type: data.plan_type || 'basic',
-          contract_number: data.contract_number || 'No asignado'
+          plan_type: data.plan_type || 'Sin plan',
+          contract_number: data.contract_number || 'No asignado',
+          pending_balance: data.pending_balance || 0,
+          plan_id: data.plan_id,
+          connection_type: (data.connection_type as 'fibra' | 'radio') || 'fibra',
+          next_billing_date: data.next_billing_date
         });
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
+  };
+
+  // Handle speed test completion
+  const handleSpeedTestComplete = (downloadSpeed: number) => {
+    setLastSpeedTest(downloadSpeed);
+  };
+
+  // Format next billing date
+  const formatBillingDate = () => {
+    if (!profileData.next_billing_date) return 'No definida';
+    const date = new Date(profileData.next_billing_date);
+    return date.toLocaleDateString('es-VE', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   if (loading) {
@@ -80,6 +113,7 @@ const Index = () => {
   if (!user) {
     return null;
   }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[hsl(216,71%,6%)] via-background to-[hsl(216,71%,12%)]">
       <Header />
@@ -108,19 +142,19 @@ const Index = () => {
           
           <StatsCard
             title="Saldo Pendiente"
-            value="$45,000"
-            subtitle="Vence: 25 Ene 2024"
+            value={`$${profileData.pending_balance.toFixed(2)}`}
+            subtitle={`Vence: ${formatBillingDate()}`}
             icon={<DollarSign className="h-6 w-6" />}
-            trend="neutral"
-            className="border-warning-orange/20"
+            trend={profileData.pending_balance > 0 ? "down" : "up"}
+            className={profileData.pending_balance > 0 ? "border-warning-orange/20" : "border-success-green/20"}
           />
           
           <StatsCard
             title="Velocidad Actual"
-            value="87.5 Mbps"
-            subtitle="+5% vs mes anterior"
+            value={lastSpeedTest ? `${lastSpeedTest.toFixed(1)} Mbps` : "Sin medir"}
+            subtitle={lastSpeedTest ? "Última medición" : "Ejecuta un test"}
             icon={<TrendingUp className="h-6 w-6" />}
-            trend="up"
+            trend={lastSpeedTest ? "up" : "neutral"}
           />
           
           <StatsCard
@@ -139,7 +173,7 @@ const Index = () => {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
           <div className="space-y-4 sm:space-y-6">
-            <SpeedTest />
+            <SpeedTest onTestComplete={handleSpeedTestComplete} />
             <NetworkInfo />
             
             {/* Network Status */}
@@ -180,7 +214,10 @@ const Index = () => {
                   </div>
                 </button>
                 
-                <button className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors">
+                <button 
+                  onClick={() => setChangePlanOpen(true)}
+                  className="w-full p-3 text-left bg-secondary/20 hover:bg-secondary/30 rounded-lg border border-border/30 transition-colors"
+                >
                   <div className="flex items-center space-x-3">
                     <Wifi className="h-5 w-5 text-primary" />
                     <div>
@@ -206,7 +243,10 @@ const Index = () => {
                   </div>
                 </button>
                 
-                <button className="w-full p-3 text-left bg-destructive/10 hover:bg-destructive/20 rounded-lg border border-destructive/30 transition-colors">
+                <button 
+                  onClick={() => setCancelServiceOpen(true)}
+                  className="w-full p-3 text-left bg-destructive/10 hover:bg-destructive/20 rounded-lg border border-destructive/30 transition-colors"
+                >
                   <div className="flex items-center space-x-3">
                     <UserX className="h-5 w-5 text-destructive" />
                     <div>
@@ -233,6 +273,25 @@ const Index = () => {
       
       {/* Chatbot de soporte con IA */}
       <SupportChatbot />
+
+      {/* Dialogs */}
+      <ChangePlanDialog
+        open={changePlanOpen}
+        onOpenChange={setChangePlanOpen}
+        currentPlanId={profileData.plan_id}
+        currentBalance={profileData.pending_balance}
+        connectionType={profileData.connection_type}
+        userId={user?.id || ''}
+        onPlanChanged={fetchProfileData}
+      />
+
+      <CancelServiceDialog
+        open={cancelServiceOpen}
+        onOpenChange={setCancelServiceOpen}
+        userId={user?.id || ''}
+        contractNumber={profileData.contract_number}
+        onCancellationRequested={fetchProfileData}
+      />
     </div>
   );
 };
