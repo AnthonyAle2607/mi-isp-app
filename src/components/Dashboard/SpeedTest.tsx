@@ -7,7 +7,11 @@ import { Progress } from "@/components/ui/progress";
 
 type TestPhase = 'idle' | 'ping' | 'download' | 'upload' | 'complete';
 
-const SpeedTest = () => {
+interface SpeedTestProps {
+  onTestComplete?: (downloadSpeed: number) => void;
+}
+
+const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
   const [phase, setPhase] = useState<TestPhase>('idle');
   const [currentSpeed, setCurrentSpeed] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -195,6 +199,10 @@ const SpeedTest = () => {
       setProgress(100);
 
       setPhase('complete');
+      
+      // Call callback with download speed
+      onTestComplete?.(download);
+      
       toast({
         title: "Prueba completada",
         description: `↓ ${download.toFixed(1)} Mbps | ↑ ${upload.toFixed(1)} Mbps | ${Math.round(ping)} ms`,
