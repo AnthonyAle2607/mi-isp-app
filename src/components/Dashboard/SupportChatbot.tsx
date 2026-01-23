@@ -24,6 +24,8 @@ const SupportChatbot = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  const WHATSAPP_LINK = "https://wa.me/+582128173500";
+
   const createTicketFromChat = async (ticketType: string, title: string, description: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -50,7 +52,19 @@ const SupportChatbot = () => {
       setTicketCreated(true);
       toast({
         title: "✅ Ticket creado",
-        description: "Tu solicitud ha sido registrada. Un técnico te contactará pronto.",
+        description: (
+          <div className="space-y-2">
+            <p>Tu solicitud ha sido registrada. Un técnico te contactará pronto.</p>
+            <a 
+              href={WHATSAPP_LINK} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary underline block"
+            >
+              📱 Contactar por WhatsApp
+            </a>
+          </div>
+        ),
       });
       return true;
     } catch (error) {

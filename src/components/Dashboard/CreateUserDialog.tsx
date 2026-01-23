@@ -163,23 +163,30 @@ const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
       ].filter(Boolean);
       const fullAddress = addressParts.join(', ');
 
-      // Create user with Supabase Auth (password = cedula)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.cedula, // Password is the cedula
-        options: {
-          data: {
-            full_name: formData.fullName
+      // Create user via edge function (no email confirmation required)
+      const response = await fetch(
+        `https://rrkfdjnfwtrbmcyflumq.supabase.co/functions/v1/create-user-no-confirm`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJya2Zkam5md3RyYm1jeWZsdW1xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgxMjAyNDYsImV4cCI6MjA3MzY5NjI0Nn0.E8B7Wl7elmPqW_EhK3r86OSVrfjD7HHxUR76K1xWwLg`
           },
-          emailRedirectTo: `${window.location.origin}/`
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.cedula,
+            fullName: formData.fullName
+          })
         }
-      });
+      );
 
-      if (authError) throw authError;
+      const result = await response.json();
 
-      if (!authData.user) {
-        throw new Error('No se pudo crear el usuario');
+      if (!result.success) {
+        throw new Error(result.error || 'Error al crear usuario');
       }
+
+      const userId = result.user.id;
 
       // Update profile with all information
       const { error: profileError } = await supabase
@@ -207,13 +214,13 @@ const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
           permanence_months: parseInt(formData.permanenceMonths) || 12,
           pending_balance: initialBalance
         })
-        .eq('user_id', authData.user.id);
+        .eq('user_id', userId);
 
       if (profileError) throw profileError;
 
       toast({
         title: "Usuario creado",
-        description: `Contrato ${formData.contractNumber} creado. Contraseña: ${formData.cedula}`,
+        description: `Contrato ${formData.contractNumber} creado. El usuario puede iniciar sesión con su correo y cédula como contraseña.`,
       });
 
       setOpen(false);

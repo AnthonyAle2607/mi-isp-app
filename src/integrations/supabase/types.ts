@@ -104,6 +104,7 @@ export type Database = {
           connection_type: string | null
           contract_number: string | null
           created_at: string
+          ctif_notes: string | null
           estado: string | null
           full_name: string | null
           gender: string | null
@@ -111,8 +112,14 @@ export type Database = {
           installation_date: string | null
           ip_address: string | null
           last_payment_date: string | null
+          link_type: string | null
           municipio: string | null
+          nap_box: string | null
+          nap_port: string | null
           next_billing_date: string | null
+          node: string | null
+          olt_equipment: string | null
+          onu_serial: string | null
           parroquia: string | null
           pending_balance: number | null
           permanence_months: number | null
@@ -120,6 +127,7 @@ export type Database = {
           plan_id: string | null
           plan_type: string | null
           sector: string | null
+          technical_equipment: string | null
           updated_at: string
           user_id: string
         }
@@ -134,6 +142,7 @@ export type Database = {
           connection_type?: string | null
           contract_number?: string | null
           created_at?: string
+          ctif_notes?: string | null
           estado?: string | null
           full_name?: string | null
           gender?: string | null
@@ -141,8 +150,14 @@ export type Database = {
           installation_date?: string | null
           ip_address?: string | null
           last_payment_date?: string | null
+          link_type?: string | null
           municipio?: string | null
+          nap_box?: string | null
+          nap_port?: string | null
           next_billing_date?: string | null
+          node?: string | null
+          olt_equipment?: string | null
+          onu_serial?: string | null
           parroquia?: string | null
           pending_balance?: number | null
           permanence_months?: number | null
@@ -150,6 +165,7 @@ export type Database = {
           plan_id?: string | null
           plan_type?: string | null
           sector?: string | null
+          technical_equipment?: string | null
           updated_at?: string
           user_id: string
         }
@@ -164,6 +180,7 @@ export type Database = {
           connection_type?: string | null
           contract_number?: string | null
           created_at?: string
+          ctif_notes?: string | null
           estado?: string | null
           full_name?: string | null
           gender?: string | null
@@ -171,8 +188,14 @@ export type Database = {
           installation_date?: string | null
           ip_address?: string | null
           last_payment_date?: string | null
+          link_type?: string | null
           municipio?: string | null
+          nap_box?: string | null
+          nap_port?: string | null
           next_billing_date?: string | null
+          node?: string | null
+          olt_equipment?: string | null
+          onu_serial?: string | null
           parroquia?: string | null
           pending_balance?: number | null
           permanence_months?: number | null
@@ -180,6 +203,7 @@ export type Database = {
           plan_id?: string | null
           plan_type?: string | null
           sector?: string | null
+          technical_equipment?: string | null
           updated_at?: string
           user_id?: string
         }
