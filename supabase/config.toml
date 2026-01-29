@@ -2,3 +2,15 @@ project_id = "rrkfdjnfwtrbmcyflumq"
 
 [functions.auto-suspend-accounts]
 verify_jwt = false
+
+[functions.create-user-no-confirm]
+verify_jwt = false
+
+[functions.customer-support-chat]
+verify_jwt = false
+
+[functions.odoo-integration]
+verify_jwt = false
+
+[functions.verify-payment-receipt]
+verify_jwt = false
