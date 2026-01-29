@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban, LogOut } from 'lucide-react';
+import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban, LogOut, Link2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from '@/components/Dashboard/EditUserDialog';
 import EditTechnicalDataDialog from '@/components/Dashboard/EditTechnicalDataDialog';
@@ -15,6 +15,7 @@ import AdminTicketsPanel from '@/components/Dashboard/AdminTicketsPanel';
 import LiveTrafficMonitor from '@/components/Admin/LiveTrafficMonitor';
 import MassSuspension from '@/components/Admin/MassSuspension';
 import WithdrawalRequestsPanel from '@/components/Admin/WithdrawalRequestsPanel';
+import OdooIntegrationPanel from '@/components/Admin/OdooIntegrationPanel';
 
 interface Profile {
   id: string;
@@ -157,7 +158,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue={defaultTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Usuarios</span>
@@ -177,6 +178,10 @@ const Admin = () => {
             <TabsTrigger value="suspension" className="flex items-center gap-2">
               <Ban className="h-4 w-4" />
               <span className="hidden sm:inline">Cortes</span>
+            </TabsTrigger>
+            <TabsTrigger value="odoo" className="flex items-center gap-2">
+              <Link2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Odoo</span>
             </TabsTrigger>
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
@@ -272,6 +277,10 @@ const Admin = () => {
 
           <TabsContent value="suspension" className="space-y-6">
             <MassSuspension />
+          </TabsContent>
+
+          <TabsContent value="odoo" className="space-y-6">
+            <OdooIntegrationPanel />
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
