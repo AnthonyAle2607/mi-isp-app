@@ -133,6 +133,19 @@ serve(async (req) => {
         break;
       }
 
+      case "list_databases": {
+        // Listar bases de datos disponibles en la instancia
+        try {
+          const databases = await callOdooRpc(ODOO_URL, "db", "list", []);
+          result = { databases };
+        } catch (error) {
+          // Algunas instancias deshabilitan el listado de DBs por seguridad
+          console.log("Database listing disabled or error:", error);
+          result = { databases: [], error: "El listado de bases de datos está deshabilitado en esta instancia" };
+        }
+        break;
+      }
+
       case "authenticate": {
         // Autenticar y obtener UID
         // data: { db: string, username: string, password?: string }
