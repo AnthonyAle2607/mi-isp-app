@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -19,7 +20,8 @@ import {
   XCircle, 
   Loader2,
   Upload,
-  Download
+  Download,
+  Search
 } from 'lucide-react';
 
 interface OdooConfig {
@@ -37,9 +39,11 @@ interface OdooStats {
 const OdooIntegrationPanel = () => {
   const [config, setConfig] = useState<OdooConfig>({
     db: '',
-    username: '',
+    username: 'analistasoportatcsd@gmail.com', // Pre-filled with user's email
     uid: null,
   });
+  const [availableDatabases, setAvailableDatabases] = useState<string[]>([]);
+  const [isLoadingDatabases, setIsLoadingDatabases] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
@@ -49,13 +53,17 @@ const OdooIntegrationPanel = () => {
   const [syncStatus, setSyncStatus] = useState<string>('');
   const { toast } = useToast();
 
-  // Cargar configuración guardada
+  // Cargar configuración guardada y buscar DBs disponibles
   useEffect(() => {
     const savedConfig = localStorage.getItem('odoo_config');
     if (savedConfig) {
       try {
         const parsed = JSON.parse(savedConfig);
-        setConfig(parsed);
+        // Keep the pre-filled username if no saved username
+        setConfig(prev => ({
+          ...parsed,
+          username: parsed.username || prev.username
+        }));
         if (parsed.uid) {
           setIsConnected(true);
         }
@@ -63,7 +71,39 @@ const OdooIntegrationPanel = () => {
         console.error('Error loading Odoo config:', e);
       }
     }
+    // Auto-fetch available databases
+    fetchDatabases();
   }, []);
+
+  const fetchDatabases = async () => {
+    setIsLoadingDatabases(true);
+    try {
+      const result = await supabase.functions.invoke('odoo-integration', {
+        body: { action: 'list_databases' },
+      });
+
+      if (result.data?.success && result.data?.data?.databases) {
+        const dbs = result.data.data.databases as string[];
+        setAvailableDatabases(dbs);
+        // Auto-select if only one database
+        if (dbs.length === 1 && !config.db) {
+          setConfig(prev => ({ ...prev, db: dbs[0] }));
+        }
+        if (dbs.length > 0) {
+          toast({
+            title: "✅ Bases de datos detectadas",
+            description: `Se encontraron ${dbs.length} base(s) de datos: ${dbs.join(', ')}`,
+          });
+        }
+      } else if (result.data?.data?.error) {
+        console.log("DB listing disabled:", result.data.data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching databases:', error);
+    } finally {
+      setIsLoadingDatabases(false);
+    }
+  };
 
   const saveConfig = (newConfig: OdooConfig) => {
     setConfig(newConfig);
@@ -333,33 +373,61 @@ const OdooIntegrationPanel = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="db">Nombre de Base de Datos</Label>
-                  <Input
-                    id="db"
-                    placeholder="ej: silverdata_prod"
-                    value={config.db}
-                    onChange={(e) => setConfig({ ...config, db: e.target.value })}
-                  />
+                  <Label htmlFor="db">Base de Datos</Label>
+                  {availableDatabases.length > 0 ? (
+                    <Select
+                      value={config.db}
+                      onValueChange={(value) => setConfig({ ...config, db: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona una base de datos" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableDatabases.map((db) => (
+                          <SelectItem key={db} value={db}>{db}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        id="db"
+                        placeholder="ej: silverdata_prod"
+                        value={config.db}
+                        onChange={(e) => setConfig({ ...config, db: e.target.value })}
+                      />
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={fetchDatabases} 
+                        disabled={isLoadingDatabases}
+                        title="Buscar bases de datos"
+                      >
+                        {isLoadingDatabases ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  )}
+                  {isLoadingDatabases && <p className="text-xs text-muted-foreground">Buscando bases de datos...</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="username">Usuario</Label>
+                  <Label htmlFor="username">Usuario (Email)</Label>
                   <Input
                     id="username"
-                    placeholder="ej: admin"
+                    placeholder="tu-email@ejemplo.com"
                     value={config.username}
                     onChange={(e) => setConfig({ ...config, username: e.target.value })}
                   />
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                La API Key ya está configurada en el servidor. Solo necesitas el nombre de la BD y usuario.
+                Tu API Key ya está configurada. Se usará como contraseña para autenticar con Odoo.
               </p>
               <div className="flex gap-2">
                 <Button onClick={testConnection} variant="outline" disabled={isTesting}>
                   {isTesting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                   Probar Conexión
                 </Button>
-                <Button onClick={authenticate} disabled={isLoading}>
+                <Button onClick={authenticate} disabled={isLoading || !config.db || !config.username}>
                   {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                   Conectar
                 </Button>
