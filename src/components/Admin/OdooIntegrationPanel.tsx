@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -19,9 +20,9 @@ import {
   CheckCircle2, 
   XCircle, 
   Loader2,
-  Upload,
   Download,
-  Search
+  Search,
+  UserPlus
 } from 'lucide-react';
 
 interface OdooConfig {
@@ -36,10 +37,22 @@ interface OdooStats {
   total_products: number;
 }
 
+interface OdooCustomer {
+  id: number;
+  name: string;
+  ref?: string;
+  email?: string;
+  phone?: string;
+  credit?: number;
+  street?: string;
+  city?: string;
+  selected?: boolean;
+}
+
 const OdooIntegrationPanel = () => {
   const [config, setConfig] = useState<OdooConfig>({
     db: '',
-    username: 'analistasoportatcsd@gmail.com', // Pre-filled with user's email
+    username: 'analistasoportatcsd@gmail.com',
     uid: null,
   });
   const [availableDatabases, setAvailableDatabases] = useState<string[]>([]);
@@ -47,10 +60,11 @@ const OdooIntegrationPanel = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
   const [stats, setStats] = useState<OdooStats | null>(null);
-  const [customers, setCustomers] = useState<Array<Record<string, unknown>>>([]);
-  const [products, setProducts] = useState<Array<Record<string, unknown>>>([]);
-  const [syncStatus, setSyncStatus] = useState<string>('');
+  const [customers, setCustomers] = useState<OdooCustomer[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<number>>(new Set());
+  const [importStatus, setImportStatus] = useState<string>('');
   const { toast } = useToast();
 
   // Cargar configuración guardada y buscar DBs disponibles
@@ -207,7 +221,7 @@ const OdooIntegrationPanel = () => {
     setIsConnected(false);
     setStats(null);
     setCustomers([]);
-    setProducts([]);
+    setSelectedCustomers(new Set());
     toast({
       title: "Desconectado",
       description: "Se ha cerrado la conexión con Odoo",
@@ -226,12 +240,13 @@ const OdooIntegrationPanel = () => {
   const loadCustomers = async () => {
     setIsLoading(true);
     try {
-      const data = await callOdoo('list_customers', { limit: 50 });
-      setCustomers(data as Array<Record<string, unknown>>);
+      const data = await callOdoo('list_customers', { limit: 100 });
+      setCustomers((data as OdooCustomer[]).map(c => ({ ...c, selected: false })));
+      setSelectedCustomers(new Set());
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Error al cargar clientes',
+        description: error instanceof Error ? error.message : 'Error al cargar clientes de Odoo',
         variant: "destructive",
       });
     } finally {
@@ -239,108 +254,120 @@ const OdooIntegrationPanel = () => {
     }
   };
 
-  const loadProducts = async () => {
-    setIsLoading(true);
-    try {
-      const data = await callOdoo('get_products');
-      setProducts(data as Array<Record<string, unknown>>);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Error al cargar productos',
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+  const toggleCustomerSelection = (customerId: number) => {
+    setSelectedCustomers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerId)) {
+        newSet.delete(customerId);
+      } else {
+        newSet.add(customerId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCustomers.size === customers.length) {
+      setSelectedCustomers(new Set());
+    } else {
+      setSelectedCustomers(new Set(customers.map(c => c.id)));
     }
   };
 
-  const syncPlansToOdoo = async () => {
-    setIsLoading(true);
-    setSyncStatus('Sincronizando planes...');
-    try {
-      const data = await callOdoo('sync_plans');
-      const results = data as Array<{ plan: string; created?: boolean; updated?: boolean }>;
-      
-      const created = results.filter(r => r.created).length;
-      const updated = results.filter(r => r.updated).length;
-      
+  const importSelectedCustomers = async () => {
+    if (selectedCustomers.size === 0) {
       toast({
-        title: "✅ Sincronización completada",
-        description: `${created} planes creados, ${updated} actualizados en Odoo`,
-      });
-      
-      await loadProducts();
-    } catch (error) {
-      toast({
-        title: "Error de sincronización",
-        description: error instanceof Error ? error.message : 'Error al sincronizar planes',
+        title: "Sin selección",
+        description: "Selecciona al menos un cliente para importar",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-      setSyncStatus('');
+      return;
     }
-  };
 
-  const syncCustomerToOdoo = async (profile: Record<string, unknown>) => {
+    setIsImporting(true);
+    setImportStatus('Importando clientes...');
+    
     try {
-      const data = await callOdoo('sync_customer', { profile });
-      const result = data as { created?: boolean; updated?: boolean; partner_id: number };
-      
-      toast({
-        title: result.created ? "Cliente creado" : "Cliente actualizado",
-        description: `ID en Odoo: ${result.partner_id}`,
-      });
-      
-      await loadCustomers();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : 'Error al sincronizar cliente',
-        variant: "destructive",
-      });
-    }
-  };
+      const customersToImport = customers.filter(c => selectedCustomers.has(c.id));
+      let imported = 0;
+      let skipped = 0;
 
-  const syncAllCustomersToOdoo = async () => {
-    setIsLoading(true);
-    setSyncStatus('Sincronizando clientes...');
-    try {
-      // Obtener todos los perfiles de Silverdata
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .not('cedula', 'is', null);
-
-      if (error) throw error;
-
-      let synced = 0;
-      for (const profile of profiles || []) {
+      for (const customer of customersToImport) {
+        setImportStatus(`Importando ${imported + 1}/${customersToImport.length}...`);
+        
         try {
-          await callOdoo('sync_customer', { profile });
-          synced++;
-          setSyncStatus(`Sincronizando clientes... ${synced}/${profiles?.length || 0}`);
+          const result = await callOdoo('import_customer_to_silverdata', { customer });
+          const importResult = result as { imported?: boolean; skipped?: boolean; reason?: string };
+          
+          if (importResult.imported) {
+            imported++;
+          } else {
+            skipped++;
+          }
         } catch (e) {
-          console.error(`Error syncing ${profile.cedula}:`, e);
+          console.error(`Error importing ${customer.name}:`, e);
+          skipped++;
         }
       }
 
       toast({
-        title: "✅ Sincronización completada",
-        description: `${synced} clientes sincronizados a Odoo`,
+        title: "✅ Importación completada",
+        description: `${imported} clientes importados, ${skipped} omitidos`,
       });
-
-      await loadCustomers();
+      
+      setSelectedCustomers(new Set());
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : 'Error al sincronizar clientes',
+        description: error instanceof Error ? error.message : 'Error al importar clientes',
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
-      setSyncStatus('');
+      setIsImporting(false);
+      setImportStatus('');
+    }
+  };
+
+  const importAllCustomers = async () => {
+    setIsImporting(true);
+    setImportStatus('Importando todos los clientes...');
+    
+    try {
+      let imported = 0;
+      let skipped = 0;
+
+      for (let i = 0; i < customers.length; i++) {
+        const customer = customers[i];
+        setImportStatus(`Importando ${i + 1}/${customers.length}...`);
+        
+        try {
+          const result = await callOdoo('import_customer_to_silverdata', { customer });
+          const importResult = result as { imported?: boolean; skipped?: boolean };
+          
+          if (importResult.imported) {
+            imported++;
+          } else {
+            skipped++;
+          }
+        } catch (e) {
+          console.error(`Error importing ${customer.name}:`, e);
+          skipped++;
+        }
+      }
+
+      toast({
+        title: "✅ Importación completada",
+        description: `${imported} clientes importados a Silverdata, ${skipped} omitidos (ya existían)`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : 'Error al importar clientes',
+        variant: "destructive",
+      });
+    } finally {
+      setIsImporting(false);
+      setImportStatus('');
     }
   };
 
@@ -356,7 +383,7 @@ const OdooIntegrationPanel = () => {
                 Integración con Odoo
               </CardTitle>
               <CardDescription>
-                Sincroniza clientes, planes y facturas con tu sistema ERP
+                Importa clientes desde Odoo hacia Silverdata (solo lectura)
               </CardDescription>
             </div>
             <Badge variant={isConnected ? "default" : "secondary"} className="text-sm">
@@ -496,112 +523,99 @@ const OdooIntegrationPanel = () => {
             </div>
           )}
 
-          {/* Tabs de sincronización */}
+          {/* Tabs de importación */}
           <Tabs defaultValue="customers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="customers">Clientes</TabsTrigger>
-              <TabsTrigger value="products">Planes/Productos</TabsTrigger>
-              <TabsTrigger value="invoices">Facturas</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="customers">Importar Clientes</TabsTrigger>
+              <TabsTrigger value="invoices">Ver Facturas</TabsTrigger>
             </TabsList>
 
             <TabsContent value="customers" className="space-y-4">
               <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle>Sincronización de Clientes</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <UserPlus className="h-5 w-5" />
+                      Importar Clientes desde Odoo
+                    </CardTitle>
                     <div className="flex gap-2">
                       <Button onClick={loadCustomers} variant="outline" size="sm" disabled={isLoading}>
-                        <Download className="h-4 w-4 mr-2" />
+                        {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
                         Cargar de Odoo
                       </Button>
-                      <Button onClick={syncAllCustomersToOdoo} size="sm" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                        Sincronizar a Odoo
-                      </Button>
+                      {customers.length > 0 && (
+                        <>
+                          <Button 
+                            onClick={importSelectedCustomers} 
+                            size="sm" 
+                            disabled={isImporting || selectedCustomers.size === 0}
+                            variant="outline"
+                          >
+                            {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                            Importar Seleccionados ({selectedCustomers.size})
+                          </Button>
+                          <Button 
+                            onClick={importAllCustomers} 
+                            size="sm" 
+                            disabled={isImporting}
+                          >
+                            {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Users className="h-4 w-4 mr-2" />}
+                            Importar Todos
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
-                  {syncStatus && <p className="text-sm text-muted-foreground">{syncStatus}</p>}
+                  {importStatus && <p className="text-sm text-muted-foreground">{importStatus}</p>}
+                  <CardDescription>
+                    Los clientes importados se crearán como nuevos usuarios en Silverdata. Si ya existen (por cédula), serán omitidos.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ScrollArea className="h-[300px]">
+                  <ScrollArea className="h-[400px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox 
+                              checked={customers.length > 0 && selectedCustomers.size === customers.length}
+                              onCheckedChange={toggleSelectAll}
+                              disabled={customers.length === 0}
+                            />
+                          </TableHead>
                           <TableHead>ID</TableHead>
                           <TableHead>Nombre</TableHead>
-                          <TableHead>Ref (Cédula)</TableHead>
+                          <TableHead>Cédula (Ref)</TableHead>
                           <TableHead>Email</TableHead>
+                          <TableHead>Teléfono</TableHead>
                           <TableHead>Deuda</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {customers.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
-                              Haz clic en "Cargar de Odoo" para ver los clientes
+                            <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                              Haz clic en "Cargar de Odoo" para ver los clientes disponibles
                             </TableCell>
                           </TableRow>
                         ) : (
                           customers.map((customer) => (
-                            <TableRow key={customer.id as number}>
-                              <TableCell>{customer.id as number}</TableCell>
-                              <TableCell>{customer.name as string}</TableCell>
-                              <TableCell>{(customer.ref as string) || '-'}</TableCell>
-                              <TableCell>{(customer.email as string) || '-'}</TableCell>
-                              <TableCell>${((customer.credit as number) || 0).toFixed(2)}</TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="products" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Sincronización de Planes</CardTitle>
-                    <div className="flex gap-2">
-                      <Button onClick={loadProducts} variant="outline" size="sm" disabled={isLoading}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Cargar de Odoo
-                      </Button>
-                      <Button onClick={syncPlansToOdoo} size="sm" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-                        Sincronizar Planes
-                      </Button>
-                    </div>
-                  </div>
-                  {syncStatus && <p className="text-sm text-muted-foreground">{syncStatus}</p>}
-                </CardHeader>
-                <CardContent>
-                  <ScrollArea className="h-[300px]">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ID</TableHead>
-                          <TableHead>Código</TableHead>
-                          <TableHead>Nombre</TableHead>
-                          <TableHead>Precio</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {products.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={4} className="text-center text-muted-foreground">
-                              Haz clic en "Cargar de Odoo" para ver los productos
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          products.map((product) => (
-                            <TableRow key={product.id as number}>
-                              <TableCell>{product.id as number}</TableCell>
-                              <TableCell>{(product.default_code as string) || '-'}</TableCell>
-                              <TableCell>{product.name as string}</TableCell>
-                              <TableCell>${((product.list_price as number) || 0).toFixed(2)}</TableCell>
+                            <TableRow 
+                              key={customer.id} 
+                              className={selectedCustomers.has(customer.id) ? 'bg-muted/50' : ''}
+                            >
+                              <TableCell>
+                                <Checkbox 
+                                  checked={selectedCustomers.has(customer.id)}
+                                  onCheckedChange={() => toggleCustomerSelection(customer.id)}
+                                />
+                              </TableCell>
+                              <TableCell className="font-mono text-xs">{customer.id}</TableCell>
+                              <TableCell className="font-medium">{customer.name}</TableCell>
+                              <TableCell>{customer.ref || '-'}</TableCell>
+                              <TableCell>{customer.email || '-'}</TableCell>
+                              <TableCell>{customer.phone || '-'}</TableCell>
+                              <TableCell>${(customer.credit || 0).toFixed(2)}</TableCell>
                             </TableRow>
                           ))
                         )}
@@ -615,14 +629,17 @@ const OdooIntegrationPanel = () => {
             <TabsContent value="invoices">
               <Card>
                 <CardHeader>
-                  <CardTitle>Gestión de Facturas</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Facturas en Odoo
+                  </CardTitle>
                   <CardDescription>
-                    Busca facturas por cédula del cliente o crea nuevas facturas
+                    Consulta las facturas de clientes directamente desde Odoo (solo lectura)
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">
-                    Para ver o crear facturas, busca un cliente por su cédula en el panel de administración.
+                    Busca un cliente por su cédula para ver sus facturas pendientes en Odoo.
                   </p>
                 </CardContent>
               </Card>

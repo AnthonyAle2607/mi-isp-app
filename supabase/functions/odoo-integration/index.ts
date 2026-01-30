@@ -160,56 +160,7 @@ serve(async (req) => {
         break;
       }
 
-      // ==================== CLIENTES ====================
-      case "sync_customer": {
-        // Sincronizar cliente de Silverdata a Odoo
-        const { profile, db, uid, password = ODOO_API_KEY } = data;
-        
-        if (!uid) throw new Error("Se requiere UID de autenticación");
-        
-        // Buscar si el cliente ya existe en Odoo por cedula
-        const existingIds = await callOdooModel(
-          ODOO_URL, db, uid, password,
-          "res.partner",
-          "search",
-          [[["ref", "=", profile.cedula]]],
-          {}
-        ) as number[];
-
-        const partnerData = {
-          name: profile.full_name,
-          ref: profile.cedula,
-          email: profile.email || "",
-          phone: profile.phone || "",
-          street: profile.address || `${profile.calle || ""} ${profile.casa || ""}`.trim(),
-          city: profile.municipio || "",
-          comment: `Contrato: ${profile.contract_number || "N/A"}\nPlan: ${profile.plan_type || "N/A"}\nNodo: ${profile.node || "N/A"}`,
-        };
-
-        if (existingIds.length > 0) {
-          // Actualizar cliente existente
-          await callOdooModel(
-            ODOO_URL, db, uid, password,
-            "res.partner",
-            "write",
-            [existingIds, partnerData],
-            {}
-          );
-          result = { updated: true, partner_id: existingIds[0] };
-        } else {
-          // Crear nuevo cliente
-          const partnerId = await callOdooModel(
-            ODOO_URL, db, uid, password,
-            "res.partner",
-            "create",
-            [partnerData],
-            {}
-          );
-          result = { created: true, partner_id: partnerId };
-        }
-        break;
-      }
-
+      // ==================== CLIENTES (SOLO LECTURA) ====================
       case "get_customer": {
         // Obtener cliente de Odoo por cedula
         const { cedula, db, uid, password = ODOO_API_KEY } = data;
@@ -268,67 +219,7 @@ serve(async (req) => {
         break;
       }
 
-      // ==================== PRODUCTOS/PLANES ====================
-      case "sync_plans": {
-        // Sincronizar planes de Silverdata a productos en Odoo
-        const { db, uid, password = ODOO_API_KEY } = data;
-        
-        if (!uid) throw new Error("Se requiere UID de autenticación");
-        
-        const { data: plans, error } = await supabase
-          .from("service_plans")
-          .select("*")
-          .eq("is_active", true);
-
-        if (error) throw error;
-
-        const syncResults = [];
-        
-        for (const plan of plans || []) {
-          const productCode = `PLAN-${plan.connection_type.toUpperCase()}-${plan.speed_mbps}`;
-          
-          // Buscar producto existente
-          const existingIds = await callOdooModel(
-            ODOO_URL, db, uid, password,
-            "product.product",
-            "search",
-            [[["default_code", "=", productCode]]],
-            {}
-          ) as number[];
-
-          const productData = {
-            name: plan.name,
-            default_code: productCode,
-            list_price: plan.monthly_price,
-            type: "service",
-            description: `Plan ${plan.connection_type} - ${plan.speed_mbps} Mbps`,
-          };
-
-          if (existingIds.length > 0) {
-            await callOdooModel(
-              ODOO_URL, db, uid, password,
-              "product.product",
-              "write",
-              [existingIds, productData],
-              {}
-            );
-            syncResults.push({ plan: plan.name, updated: true, product_id: existingIds[0] });
-          } else {
-            const productId = await callOdooModel(
-              ODOO_URL, db, uid, password,
-              "product.product",
-              "create",
-              [productData],
-              {}
-            );
-            syncResults.push({ plan: plan.name, created: true, product_id: productId });
-          }
-        }
-        
-        result = syncResults;
-        break;
-      }
-
+      // ==================== PRODUCTOS/PLANES (SOLO LECTURA) ====================
       case "get_products": {
         // Obtener productos/planes de Odoo
         const { db, uid, password = ODOO_API_KEY } = data;
@@ -512,6 +403,63 @@ serve(async (req) => {
           pending_invoices: pendingInvoices,
           total_products: totalProducts,
         };
+        break;
+      }
+
+      // ==================== IMPORTAR A SILVERDATA ====================
+      case "import_customer_to_silverdata": {
+        // Importar cliente de Odoo hacia Silverdata (crear usuario + perfil)
+        const { customer } = data;
+        
+        if (!customer) throw new Error("Se requiere información del cliente");
+        
+        // Verificar si ya existe un perfil con esa cédula
+        const cedula = customer.ref || null;
+        
+        if (cedula) {
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("cedula", cedula)
+            .maybeSingle();
+
+          if (existingProfile) {
+            result = { skipped: true, reason: "Cliente ya existe en Silverdata" };
+            break;
+          }
+        }
+
+        // Generar un email temporal si no tiene
+        const email = customer.email || `cliente_${customer.id}@silverdata.local`;
+        
+        // Crear usuario en auth (usando la edge function existente o directamente)
+        // Por ahora solo creamos el perfil con datos de Odoo
+        // El usuario se creará cuando intente acceder
+        
+        // Crear perfil directamente
+        const { data: newProfile, error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            user_id: crypto.randomUUID(), // Temporal - se actualizará cuando se cree el usuario real
+            full_name: customer.name || "Sin nombre",
+            cedula: cedula,
+            cedula_type: "V",
+            phone: customer.phone || null,
+            address: customer.street || null,
+            municipio: customer.city || null,
+            pending_balance: customer.credit || 0,
+            account_status: "active",
+          })
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+          throw new Error(`Error al crear perfil: ${profileError.message}`);
+        }
+
+        console.log(`Customer imported: ${customer.name} -> Profile ID: ${newProfile.id}`);
+        result = { imported: true, profile_id: newProfile.id };
         break;
       }
 
