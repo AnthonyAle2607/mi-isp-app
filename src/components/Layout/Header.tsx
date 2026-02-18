@@ -15,63 +15,74 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-gradient-to-r from-[hsl(216,71%,10%)] to-[hsl(216,71%,15%)] backdrop-blur-lg border-b border-border/30 sticky top-0 z-50 shadow-lg">
-      <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between flex-wrap sm:flex-nowrap gap-2">
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <img 
-            src={silverdataLogo} 
-            alt="Silverdata Logo" 
-            className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover"
-          />
+    <header className="sticky top-0 z-50 glass-card border-b border-border/40 backdrop-blur-xl">
+      <div className="container mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5">
+          <div className="relative">
+            <img
+              src={silverdataLogo}
+              alt="Silverdata Logo"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg object-cover"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-success-green rounded-full border-2 border-background" />
+          </div>
           <div>
-            <h1 className="text-base sm:text-xl font-bold tracking-wide">
-              <span className="text-white">SILVER</span>
-              <span className="text-primary">DATA</span>
+            <h1 className="text-base sm:text-lg font-bold leading-none">
+              <span className="text-foreground">SILVER</span>
+              <span className="gradient-text">DATA</span>
             </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Portal de Autogestión</p>
+            <p className="text-xs text-muted-foreground hidden sm:block leading-none mt-0.5">Portal de Autogestión</p>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-2 sm:space-x-4">
-          <Button variant="ghost" size="icon" className="relative hidden sm:flex hover:bg-secondary/50">
-            <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-foreground" />
-            <span className="absolute -top-1 -right-1 h-2 w-2 sm:h-3 sm:w-3 bg-primary rounded-full animate-pulse"></span>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Notification bell */}
+          <Button variant="ghost" size="icon" className="relative hidden sm:flex hover:bg-secondary/60 h-9 w-9">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-primary rounded-full" />
           </Button>
-          
-          <div className="flex items-center space-x-2 sm:space-x-3">
+
+          {/* User info + profile */}
+          <div className="flex items-center gap-2.5">
             <div className="text-right hidden md:block">
-              <p className="text-xs sm:text-sm font-medium text-foreground truncate max-w-[150px]">{user?.email || 'Cliente ISP'}</p>
-              <p className="text-xs text-primary font-medium">
-                {isAdmin ? 'Administrador' : 'Cliente Silverdata'}
-              </p>
+              <p className="text-xs font-medium text-foreground truncate max-w-[160px]">{user?.email || 'Cliente ISP'}</p>
+              <p className="text-xs text-primary">{isAdmin ? 'Administrador' : 'Cliente Silverdata'}</p>
             </div>
             <ProfileDialog />
           </div>
-          
+
+          {/* Admin shortcuts */}
           {isAdmin && (
             <>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate('/network')}
-                className="border-primary/50 text-primary hover:bg-primary/10 hidden sm:flex text-xs"
+                className="hidden sm:flex text-xs text-muted-foreground hover:text-foreground gap-1.5 h-8"
               >
-                <Network className="h-3 w-3 mr-1" />
+                <Network className="h-3.5 w-3.5" />
                 Red
               </Button>
-              <Button 
-                variant="default" 
-                size="sm" 
+              <Button
+                size="sm"
                 onClick={() => navigate('/admin-home')}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground hidden sm:flex text-xs"
+                className="hidden sm:flex text-xs h-8 shine"
               >
-                Inicio Admin
+                Admin
               </Button>
             </>
           )}
-          
-          <Button variant="ghost" size="icon" onClick={handleSignOut} className="hover:bg-destructive/20">
-            <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-foreground hover:text-destructive" />
+
+          {/* Logout */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleSignOut}
+            className="h-9 w-9 hover:bg-destructive/15 hover:text-destructive transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>

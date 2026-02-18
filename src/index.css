@@ -9,50 +9,51 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Silverdata Brand Colors - Deep Navy & Vibrant Orange */
-    --background: 216 71% 8%;
-    --foreground: 0 0% 98%;
+    --background: 220 30% 7%;
+    --foreground: 0 0% 97%;
 
-    --card: 216 71% 10%;
-    --card-foreground: 0 0% 98%;
+    --card: 220 28% 10%;
+    --card-foreground: 0 0% 97%;
 
-    --popover: 216 71% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 220 28% 10%;
+    --popover-foreground: 0 0% 97%;
 
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 216 50% 15%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 220 25% 16%;
+    --secondary-foreground: 0 0% 97%;
 
-    --muted: 216 50% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 22% 19%;
+    --muted-foreground: 215 18% 60%;
 
     --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 50%;
+    --destructive: 0 63% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 216 50% 20%;
-    --input: 216 50% 18%;
+    --border: 220 22% 18%;
+    --input: 220 22% 15%;
     --ring: 24 95% 53%;
 
     /* Silverdata Brand Theme */
-    --silverdata-navy: 216 71% 12%;
-    --silverdata-navy-dark: 216 71% 8%;
+    --silverdata-navy: 220 28% 12%;
+    --silverdata-navy-dark: 220 30% 7%;
     --silverdata-orange: 24 95% 53%;
-    --silverdata-orange-light: 24 95% 60%;
-    --tech-blue: 210 100% 50%;
-    --tech-blue-dark: 210 100% 40%;
-    --success-green: 142 76% 36%;
-    --success-green-light: 142 76% 50%;
+    --silverdata-orange-light: 24 95% 62%;
+    --tech-blue: 210 100% 52%;
+    --tech-blue-dark: 210 100% 42%;
+    --success-green: 142 71% 40%;
+    --success-green-light: 142 71% 52%;
     --warning-orange: 24 95% 53%;
-    --gradient-primary: linear-gradient(135deg, hsl(216 71% 12%), hsl(216 71% 8%));
-    --gradient-silverdata: linear-gradient(135deg, hsl(216 71% 15%), hsl(216 71% 5%));
-    --gradient-accent: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 45%));
-    --gradient-card: linear-gradient(145deg, hsl(216 71% 12%), hsl(216 71% 8%));
-    --shadow-glow: 0 0 40px hsl(24 95% 53% / 0.3);
-    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
+    --gradient-primary: linear-gradient(135deg, hsl(220 28% 12%), hsl(220 30% 7%));
+    --gradient-silverdata: linear-gradient(135deg, hsl(220 30% 14%), hsl(220 30% 5%));
+    --gradient-accent: linear-gradient(135deg, hsl(24 95% 56%), hsl(24 90% 44%));
+    --gradient-card: linear-gradient(145deg, hsl(220 28% 12%), hsl(220 30% 8%));
+    --shadow-glow: 0 0 50px hsl(24 95% 53% / 0.25);
+    --shadow-card: 0 12px 40px -12px hsl(0 0% 0% / 0.6);
+    --shadow-orange: 0 8px 32px hsl(24 95% 53% / 0.35);
 
     /* Network Status Colors */
     --network-online: 142 76% 50%;
@@ -128,29 +129,62 @@ All colors MUST be HSL.
   .network-pulse {
     animation: network-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  
+
   @keyframes network-pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
   }
-  
+
   .status-change {
     animation: status-change 0.5s ease-in-out;
   }
-  
+
   @keyframes status-change {
-    0% {
-      transform: scale(1);
-    }
-    50% {
-      transform: scale(1.1);
-    }
-    100% {
-      transform: scale(1);
-    }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+  }
+
+  /* Modern glow border */
+  .glow-border {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 24px hsl(var(--primary) / 0.15);
+  }
+
+  /* Glass card */
+  .glass-card {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid hsl(var(--border) / 0.6);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(24 95% 68%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Shine effect */
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, hsl(0 0% 100% / 0.06) 50%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Fade in up */
+  .fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
