@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface StatsCardProps {
@@ -12,20 +11,20 @@ interface StatsCardProps {
 
 const StatsCard = ({ title, value, subtitle, icon, trend = "neutral", className }: StatsCardProps) => {
   return (
-    <Card className={cn(
-      "p-6 bg-gradient-to-br from-card to-secondary/20 border border-border/50",
+    <div className={cn(
+      "glass-card rounded-xl p-5 relative overflow-hidden group",
       "hover:shadow-lg hover:shadow-primary/10 transition-all duration-300",
-      "backdrop-blur-sm",
       className
     )}>
-      <div className="flex items-start justify-between">
+      <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors duration-500" />
+      <div className="relative z-10 flex items-start justify-between">
         <div className="space-y-2 flex-1">
-          <p className="text-sm text-muted-foreground font-medium">{title}</p>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{title}</p>
           <div className="space-y-1">
             <p className="text-2xl font-bold text-foreground">{value}</p>
             {subtitle && (
               <p className={cn(
-                "text-sm font-medium",
+                "text-xs font-medium",
                 trend === "up" && "text-success-green",
                 trend === "down" && "text-destructive",
                 trend === "neutral" && "text-muted-foreground"
@@ -35,13 +34,13 @@ const StatsCard = ({ title, value, subtitle, icon, trend = "neutral", className 
             )}
           </div>
         </div>
-        <div className="p-3 bg-primary/10 rounded-lg">
+        <div className="p-2.5 bg-primary/10 rounded-xl border border-primary/10">
           <div className="text-primary">
             {icon}
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
