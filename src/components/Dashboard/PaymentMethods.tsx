@@ -60,7 +60,7 @@ const PaymentMethods = () => {
   };
 
   return (
-    <div className="bg-card/50 backdrop-blur-sm border border-primary/30 rounded-lg p-6 shadow-lg">
+    <div className="glass-card rounded-xl p-6">
       <h3 className="text-xl font-bold text-foreground mb-6 flex items-center">
         <DollarSign className="h-6 w-6 mr-2 text-primary" />
         Formas de Pago

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,11 +42,9 @@ const AccountStatus = () => {
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <p className="text-center text-muted-foreground">Cargando...</p>
-        </CardContent>
-      </Card>
+      <div className="glass-card rounded-xl p-6">
+        <p className="text-center text-muted-foreground">Cargando...</p>
+      </div>
     );
   }
 
@@ -58,24 +55,24 @@ const AccountStatus = () => {
           icon: CheckCircle2,
           label: 'Activo',
           variant: 'default' as const,
-          color: 'text-green-500',
-          bgColor: 'bg-green-500/10'
+          color: 'text-success-green',
+          bgColor: 'bg-success-green/10'
         };
       case 'suspended':
         return {
           icon: AlertCircle,
           label: 'Suspendido',
           variant: 'destructive' as const,
-          color: 'text-red-500',
-          bgColor: 'bg-red-500/10'
+          color: 'text-destructive',
+          bgColor: 'bg-destructive/10'
         };
       case 'inactive':
         return {
           icon: Clock,
           label: 'Inactivo',
           variant: 'secondary' as const,
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-500/10'
+          color: 'text-muted-foreground',
+          bgColor: 'bg-muted/50'
         };
       default:
         return {
@@ -83,7 +80,7 @@ const AccountStatus = () => {
           label: status,
           variant: 'outline' as const,
           color: 'text-muted-foreground',
-          bgColor: 'bg-muted'
+          bgColor: 'bg-muted/50'
         };
     }
   };
@@ -96,82 +93,83 @@ const AccountStatus = () => {
     : null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <div className="glass-card rounded-xl p-6 space-y-5">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-primary/10 rounded-lg">
           <Calendar className="h-5 w-5 text-primary" />
-          Estado de Cuenta
-        </CardTitle>
-        <CardDescription>
-          Información sobre tu servicio y próxima fecha de pago
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className={`rounded-lg p-4 ${statusConfig.bgColor} border border-border/50`}>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">Estado de Cuenta</h3>
+          <p className="text-sm text-muted-foreground">Tu servicio y próxima fecha de pago</p>
+        </div>
+      </div>
+
+      {/* Status */}
+      <div className={`rounded-xl p-4 ${statusConfig.bgColor} border border-border/30`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <StatusIcon className={`h-6 w-6 ${statusConfig.color}`} />
+            <div>
+              <p className="text-xs text-muted-foreground">Estado del Servicio</p>
+              <p className="text-lg font-semibold text-foreground">{statusConfig.label}</p>
+            </div>
+          </div>
+          <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+        </div>
+      </div>
+
+      {accountInfo?.last_payment_date && (
+        <div className="bg-secondary/20 rounded-xl p-4 border border-border/30">
+          <p className="text-xs text-muted-foreground mb-1">Último Pago</p>
+          <p className="font-semibold text-foreground">
+            {format(new Date(accountInfo.last_payment_date), 'PPP', { locale: es })}
+          </p>
+        </div>
+      )}
+
+      {accountInfo?.next_billing_date && (
+        <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <StatusIcon className={`h-6 w-6 ${statusConfig.color}`} />
-              <div>
-                <p className="text-sm text-muted-foreground">Estado del Servicio</p>
-                <p className="text-lg font-semibold text-foreground">{statusConfig.label}</p>
-              </div>
+            <div>
+              <p className="text-xs text-muted-foreground mb-1">Próxima Fecha de Corte</p>
+              <p className="font-semibold text-foreground">
+                {format(new Date(accountInfo.next_billing_date), 'PPP', { locale: es })}
+              </p>
             </div>
-            <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+            {daysUntilCutoff !== null && daysUntilCutoff > 0 && (
+              <Badge variant="outline" className="text-xs">
+                {daysUntilCutoff} {daysUntilCutoff === 1 ? 'día' : 'días'}
+              </Badge>
+            )}
           </div>
         </div>
+      )}
 
-        {accountInfo?.last_payment_date && (
-          <div className="bg-secondary/20 rounded-lg p-4 border border-border/50">
-            <p className="text-sm text-muted-foreground mb-1">Último Pago</p>
-            <p className="font-semibold text-foreground">
-              {format(new Date(accountInfo.last_payment_date), 'PPP', { locale: es })}
-            </p>
-          </div>
-        )}
-
-        {accountInfo?.next_billing_date && (
-          <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Próxima Fecha de Corte</p>
-                <p className="font-semibold text-foreground">
-                  {format(new Date(accountInfo.next_billing_date), 'PPP', { locale: es })}
-                </p>
-              </div>
-              {daysUntilCutoff !== null && daysUntilCutoff > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {daysUntilCutoff} {daysUntilCutoff === 1 ? 'día' : 'días'}
-                </Badge>
-              )}
+      {accountInfo?.account_status === 'suspended' && (
+        <div className="bg-destructive/10 rounded-xl p-4 border border-destructive/30">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-destructive mb-1">Servicio Suspendido</p>
+              <p className="text-sm text-muted-foreground">
+                Tu servicio ha sido suspendido por falta de pago. 
+                Por favor, realiza tu pago para reactivar el servicio automáticamente.
+              </p>
             </div>
           </div>
-        )}
-
-        {accountInfo?.account_status === 'suspended' && (
-          <div className="bg-destructive/10 rounded-lg p-4 border border-destructive/30">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-destructive mb-1">Servicio Suspendido</p>
-                <p className="text-sm text-muted-foreground">
-                  Tu servicio ha sido suspendido por falta de pago. 
-                  Por favor, realiza tu pago para reactivar el servicio automáticamente.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="text-xs text-muted-foreground bg-muted/50 rounded p-3">
-          <p className="font-medium mb-1">ℹ️ Información importante:</p>
-          <ul className="space-y-1 ml-4 list-disc">
-            <li>Las fechas de corte son cada día 5 del mes</li>
-            <li>Asegúrate de pagar antes de la fecha de corte</li>
-            <li>Al verificarse tu pago, tu servicio se reactivará automáticamente</li>
-          </ul>
         </div>
-      </CardContent>
-    </Card>
+      )}
+
+      <div className="text-xs text-muted-foreground bg-secondary/20 rounded-xl p-3 border border-border/20">
+        <p className="font-medium mb-1">ℹ️ Información importante:</p>
+        <ul className="space-y-1 ml-4 list-disc">
+          <li>Las fechas de corte son cada día 5 del mes</li>
+          <li>Asegúrate de pagar antes de la fecha de corte</li>
+          <li>Al verificarse tu pago, tu servicio se reactivará automáticamente</li>
+        </ul>
+      </div>
+    </div>
   );
 };
 

@@ -151,7 +151,7 @@ const PaymentReceipt = () => {
   };
 
   return (
-    <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-lg p-6">
+    <div className="glass-card rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-foreground flex items-center">
           <FileText className="h-5 w-5 mr-2 text-primary" />
