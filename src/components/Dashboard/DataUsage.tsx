@@ -17,7 +17,7 @@ const DataUsage = () => {
   ];
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-card to-secondary/20 border border-border/50">
+    <div className="glass-card rounded-xl p-6">
       <div className="space-y-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 bg-primary/10 rounded-lg">
@@ -93,7 +93,7 @@ const DataUsage = () => {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
