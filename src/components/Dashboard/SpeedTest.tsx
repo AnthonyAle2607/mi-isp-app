@@ -237,7 +237,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
   };
 
   return (
-    <Card className="p-6 bg-card border-border">
+    <div className="glass-card rounded-xl p-6">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -388,7 +388,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
 
