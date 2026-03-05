@@ -279,10 +279,10 @@ const SupportChatbot = () => {
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                    className={`max-w-[80%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
                       message.role === "user"
                         ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                        : "bg-muted text-foreground"
                     }`}
                   >
                     {message.content}
