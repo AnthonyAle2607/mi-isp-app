@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.verify-payment-receipt]
 verify_jwt = false
+
+[functions.mikrotik-traffic]
+verify_jwt = false

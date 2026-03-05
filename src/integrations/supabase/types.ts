@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_traffic: {
+        Row: {
+          created_at: string
+          download_mbps: number
+          id: string
+          ip_address: string
+          is_online: boolean
+          recorded_at: string
+          upload_mbps: number
+        }
+        Insert: {
+          created_at?: string
+          download_mbps?: number
+          id?: string
+          ip_address: string
+          is_online?: boolean
+          recorded_at?: string
+          upload_mbps?: number
+        }
+        Update: {
+          created_at?: string
+          download_mbps?: number
+          id?: string
+          ip_address?: string
+          is_online?: boolean
+          recorded_at?: string
+          upload_mbps?: number
+        }
+        Relationships: []
+      }
+      client_traffic_daily: {
+        Row: {
+          created_at: string
+          date: string
+          download_gb: number
+          id: string
+          ip_address: string
+          peak_download_mbps: number
+          peak_upload_mbps: number
+          upload_gb: number
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          download_gb?: number
+          id?: string
+          ip_address: string
+          peak_download_mbps?: number
+          peak_upload_mbps?: number
+          upload_gb?: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          download_gb?: number
+          id?: string
+          ip_address?: string
+          peak_download_mbps?: number
+          peak_upload_mbps?: number
+          upload_gb?: number
+        }
+        Relationships: []
+      }
       network_devices: {
         Row: {
           created_at: string
