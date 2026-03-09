@@ -1,18 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Plus, Calendar, DollarSign } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import PaymentForm from "./PaymentForm";
 
-const PaymentHistory = () => {
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
+interface PaymentRecord {
+  id: string;
+  amount: number | null;
+  verification_status: string | null;
+  payment_date: string | null;
+  created_at: string;
+  receipt_url: string;
+}
 
-  const payments = [
-    { id: 1, date: "2024-01-15", amount: 45000, status: "Pagado", method: "Tarjeta", bank: "Bancolombia", reference: "1234567890" },
-    { id: 2, date: "2023-12-15", amount: 45000, status: "Pagado", method: "Transferencia", bank: "Davivienda", reference: "0987654321" },
-    { id: 3, date: "2023-11-15", amount: 45000, status: "Pendiente", method: "Transferencia", bank: "BBVA", reference: "5566778899" },
-  ];
+const PaymentHistory = () => {
+  const { user } = useAuth();
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) fetchPayments();
+  }, [user]);
+
+  const fetchPayments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payment_receipts')
+        .select('id, amount, verification_status, payment_date, created_at, receipt_url')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setPayments(data || []);
+    } catch (err) {
+      console.error('Error fetching payments:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusLabel = (status: string | null) => {
+    switch (status) {
+      case 'verified': return 'Verificado';
+      case 'rejected': return 'Rechazado';
+      default: return 'Pendiente';
+    }
+  };
+
+  const getStatusClass = (status: string | null) => {
+    switch (status) {
+      case 'verified': return 'bg-success-green/10 text-success-green border-success-green/20';
+      case 'rejected': return 'bg-destructive/10 text-destructive border-destructive/20';
+      default: return 'bg-warning-orange/10 text-warning-orange border-warning-orange/20';
+    }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return 'Sin fecha';
+    return new Date(dateStr).toLocaleDateString('es-VE', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
 
   return (
     <div className="glass-card rounded-xl p-6">
@@ -37,48 +87,45 @@ const PaymentHistory = () => {
         </div>
 
         <div className="space-y-3">
-          {payments.map((payment) => (
-            <div key={payment.id} className="flex items-center justify-between p-4 bg-secondary/20 rounded-lg border border-border/30">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-primary/10 rounded-full">
-                  <DollarSign className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">{payment.date}</p>
+          {loading ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">Cargando pagos...</div>
+          ) : payments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground text-sm">No hay pagos registrados</div>
+          ) : (
+            payments.map((payment) => (
+              <div key={payment.id} className="flex items-center justify-between p-4 bg-secondary/20 rounded-lg border border-border/30">
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <DollarSign className="h-4 w-4 text-primary" />
                   </div>
-                  <p className="text-sm text-muted-foreground">{payment.method} - {payment.bank}</p>
-                  <p className="text-xs text-muted-foreground">Ref: {payment.reference}</p>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-medium text-foreground">{formatDate(payment.payment_date)}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Registrado: {formatDate(payment.created_at)}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-3">
+                  <p className="text-lg font-bold text-foreground">
+                    ${(payment.amount || 0).toFixed(2)}
+                  </p>
+                  <Badge variant="secondary" className={getStatusClass(payment.verification_status)}>
+                    {getStatusLabel(payment.verification_status)}
+                  </Badge>
                 </div>
               </div>
-              
-              <div className="flex items-center space-x-3">
-                <p className="text-lg font-bold text-foreground">
-                  ${payment.amount.toLocaleString('es-CO')}
-                </p>
-                <Badge 
-                  variant="secondary" 
-                  className={
-                    payment.status === "Pagado" 
-                      ? "bg-success-green/10 text-success-green border-success-green/20"
-                      : "bg-warning-orange/10 text-warning-orange border-warning-orange/20"
-                  }
-                >
-                  {payment.status}
-                </Badge>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {showPaymentForm && (
           <PaymentForm
             onClose={() => setShowPaymentForm(false)}
-            onSuccess={() => {
-              // Aquí podrías actualizar la lista de pagos
-              console.log('Pago registrado exitosamente');
-            }}
+            onSuccess={fetchPayments}
           />
         )}
       </div>

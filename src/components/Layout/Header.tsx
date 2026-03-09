@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { Bell, LogOut, Network } from "lucide-react";
+import { LogOut, Network } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import ProfileDialog from './ProfileDialog';
+import ThemeToggle from './ThemeToggle';
+import NotificationsPanel from '@/components/Notifications/NotificationsPanel';
 import silverdataLogo from '@/assets/silverdata-logo.png';
 
 const Header = () => {
@@ -38,11 +40,8 @@ const Header = () => {
 
         {/* Right side */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Notification bell */}
-          <Button variant="ghost" size="icon" className="relative hidden sm:flex hover:bg-secondary/60 h-9 w-9">
-            <Bell className="h-4 w-4 text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-primary rounded-full" />
-          </Button>
+          <ThemeToggle />
+          <NotificationsPanel />
 
           {/* User info + profile */}
           <div className="flex items-center gap-2.5">
