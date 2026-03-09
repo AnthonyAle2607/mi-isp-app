@@ -9,9 +9,9 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
 import NetworkManagement from "./pages/NetworkManagement";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
-// Create QueryClient now that bundling is fixed
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -21,7 +21,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Full ISP platform with authentication
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -31,11 +30,12 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/admin-home" element={<AdminDashboard />} />
-            <Route path="/network" element={<NetworkManagement />} />
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/admin-home" element={<AdminDashboard />} />
+              <Route path="/network" element={<NetworkManagement />} />
+              <Route path="/landing" element={<Landing />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
