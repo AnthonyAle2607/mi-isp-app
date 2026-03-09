@@ -8,24 +8,24 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Silverdata Brand Colors - Deep Navy & Vibrant Orange */
-    --background: 220 30% 7%;
-    --foreground: 0 0% 97%;
+    /* Light mode */
+    --background: 0 0% 98%;
+    --foreground: 220 25% 12%;
 
-    --card: 220 28% 10%;
-    --card-foreground: 0 0% 97%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 12%;
 
-    --popover: 220 28% 10%;
-    --popover-foreground: 0 0% 97%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 12%;
 
     --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 25% 16%;
-    --secondary-foreground: 0 0% 97%;
+    --secondary: 220 15% 93%;
+    --secondary-foreground: 220 25% 12%;
 
-    --muted: 220 22% 19%;
-    --muted-foreground: 215 18% 60%;
+    --muted: 220 15% 90%;
+    --muted-foreground: 220 10% 45%;
 
     --accent: 24 95% 53%;
     --accent-foreground: 0 0% 100%;
@@ -33,8 +33,8 @@ All colors MUST be HSL.
     --destructive: 0 63% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 22% 18%;
-    --input: 220 22% 15%;
+    --border: 220 15% 88%;
+    --input: 220 15% 91%;
     --ring: 24 95% 53%;
 
     /* Silverdata Brand Theme */
@@ -50,10 +50,10 @@ All colors MUST be HSL.
     --gradient-primary: linear-gradient(135deg, hsl(220 28% 12%), hsl(220 30% 7%));
     --gradient-silverdata: linear-gradient(135deg, hsl(220 30% 14%), hsl(220 30% 5%));
     --gradient-accent: linear-gradient(135deg, hsl(24 95% 56%), hsl(24 90% 44%));
-    --gradient-card: linear-gradient(145deg, hsl(220 28% 12%), hsl(220 30% 8%));
-    --shadow-glow: 0 0 50px hsl(24 95% 53% / 0.25);
-    --shadow-card: 0 12px 40px -12px hsl(0 0% 0% / 0.6);
-    --shadow-orange: 0 8px 32px hsl(24 95% 53% / 0.35);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(220 15% 96%));
+    --shadow-glow: 0 0 50px hsl(24 95% 53% / 0.15);
+    --shadow-card: 0 12px 40px -12px hsl(0 0% 0% / 0.1);
+    --shadow-orange: 0 8px 32px hsl(24 95% 53% / 0.2);
 
     /* Network Status Colors */
     --network-online: 142 76% 50%;
@@ -65,13 +65,13 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    --sidebar-background: 216 71% 10%;
-    --sidebar-foreground: 0 0% 98%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 25% 12%;
     --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 216 50% 18%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 216 50% 20%;
+    --sidebar-accent: 220 15% 93%;
+    --sidebar-accent-foreground: 220 25% 12%;
+    --sidebar-border: 220 15% 88%;
     --sidebar-ring: 24 95% 53%;
   }
 
