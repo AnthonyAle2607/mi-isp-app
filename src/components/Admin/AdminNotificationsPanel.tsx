@@ -126,10 +126,8 @@ const AdminNotificationsPanel = () => {
     const field = fieldMap[targetType];
     if (!field || !targetValue) return 0;
 
-    const { count } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq(field as any, targetValue);
+    const query = supabase.from('profiles').select('*', { count: 'exact', head: true });
+    const { count } = await (query as any).eq(field, targetValue);
 
     return count || 0;
   };
