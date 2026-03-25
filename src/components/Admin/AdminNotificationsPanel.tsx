@@ -99,7 +99,7 @@ const AdminNotificationsPanel = () => {
 
       if (error) throw error;
 
-      const unique = [...new Set((data || []).map((d: any) => d[field]).filter(Boolean))];
+      const unique = [...new Set((data || []).map((d: any) => String(d[field])).filter(Boolean))];
       setTargetOptions(unique.sort());
       setTargetValue('');
     } catch (error) {
