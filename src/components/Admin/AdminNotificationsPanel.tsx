@@ -115,7 +115,7 @@ const AdminNotificationsPanel = () => {
       return count || 0;
     }
 
-    const fieldMap: Record<string, keyof typeof profiles extends never ? string : string> = {
+    const fieldMap: Record<string, string> = {
       node: 'node',
       olt: 'olt_equipment',
       sector: 'sector',
