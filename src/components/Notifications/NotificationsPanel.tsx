@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, CheckCircle, AlertTriangle, CreditCard, MessageSquare, X, Trash2 } from 'lucide-react';
+import { Bell, CheckCircle, AlertTriangle, CreditCard, MessageSquare, Trash2, WifiOff, Info, Megaphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 
 interface Notification {
   id: string;
-  type: 'payment' | 'ticket' | 'system' | 'warning';
+  type: 'payment' | 'ticket' | 'system' | 'warning' | 'outage' | 'maintenance' | 'promotion';
   title: string;
   message: string;
   read: boolean;
@@ -25,7 +24,6 @@ const NotificationsPanel = () => {
     if (!user) return;
     fetchNotifications();
 
-    // Listen for payment receipt changes
     const paymentChannel = supabase
       .channel('payment-notifications')
       .on('postgres_changes', {
@@ -43,7 +41,6 @@ const NotificationsPanel = () => {
       })
       .subscribe();
 
-    // Listen for ticket responses
     const ticketChannel = supabase
       .channel('ticket-notifications')
       .on('postgres_changes', {
@@ -58,16 +55,29 @@ const NotificationsPanel = () => {
       })
       .subscribe();
 
+    // Listen for new admin notifications in real-time
+    const adminNotifChannel = supabase
+      .channel('admin-notifications-realtime')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'admin_notifications',
+      }, () => {
+        // Refetch to check if notification targets this user
+        fetchAdminNotifications();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(paymentChannel);
       supabase.removeChannel(ticketChannel);
+      supabase.removeChannel(adminNotifChannel);
     };
   }, [user]);
 
   const fetchNotifications = async () => {
     if (!user) return;
 
-    // Build notifications from recent payment receipts and tickets
     const [receiptsRes, ticketsRes] = await Promise.all([
       supabase
         .from('payment_receipts')
@@ -119,8 +129,74 @@ const NotificationsPanel = () => {
       });
     });
 
+    // Fetch admin notifications targeted to this user
+    const adminNotifs = await fetchAdminNotifications();
+    notifs.push(...adminNotifs);
+
     notifs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setNotifications(notifs.slice(0, 10));
+    setNotifications(prev => {
+      // Merge: keep local-only notifs and replace fetched ones
+      const localOnly = prev.filter(n => n.id.startsWith('local-'));
+      const merged = [...localOnly, ...notifs];
+      merged.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return merged.slice(0, 20);
+    });
+  };
+
+  const fetchAdminNotifications = async (): Promise<Notification[]> => {
+    if (!user) return [];
+
+    try {
+      // Get user profile to determine targeting
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('node, olt_equipment, sector, nap_box, account_status')
+        .eq('user_id', user.id)
+        .single();
+
+      // Get read notification IDs
+      const { data: reads } = await supabase
+        .from('notification_reads')
+        .select('notification_id')
+        .eq('user_id', user.id);
+
+      const readIds = new Set((reads || []).map(r => r.notification_id));
+
+      // Get recent admin notifications
+      const { data: adminNotifs } = await supabase
+        .from('admin_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (!adminNotifs) return [];
+
+      // Filter notifications that target this user
+      return adminNotifs
+        .filter(n => {
+          if (n.target_type === 'all') return true;
+          if (!profile) return false;
+          const fieldMap: Record<string, string | null> = {
+            node: profile.node,
+            olt: profile.olt_equipment,
+            sector: profile.sector,
+            nap_box: profile.nap_box,
+            status: profile.account_status,
+          };
+          return fieldMap[n.target_type] === n.target_value;
+        })
+        .map(n => ({
+          id: `admin-${n.id}`,
+          type: n.notification_type as Notification['type'],
+          title: n.title,
+          message: n.message,
+          read: readIds.has(n.id),
+          created_at: n.created_at,
+        }));
+    } catch (error) {
+      console.error('Error fetching admin notifications:', error);
+      return [];
+    }
   };
 
   const addLocalNotification = (type: Notification['type'], title: string, message: string) => {
@@ -131,11 +207,22 @@ const NotificationsPanel = () => {
       message,
       read: false,
       created_at: new Date().toISOString(),
-    }, ...prev].slice(0, 15));
+    }, ...prev].slice(0, 20));
   };
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+
+    // Mark admin notifications as read in DB
+    if (!user) return;
+    const adminNotifIds = notifications
+      .filter(n => n.id.startsWith('admin-') && !n.read)
+      .map(n => n.id.replace('admin-', ''));
+
+    if (adminNotifIds.length > 0) {
+      const inserts = adminNotifIds.map(id => ({ notification_id: id, user_id: user.id }));
+      await supabase.from('notification_reads').upsert(inserts, { onConflict: 'notification_id,user_id' });
+    }
   };
 
   const clearAll = () => {
@@ -149,7 +236,10 @@ const NotificationsPanel = () => {
       case 'payment': return <CreditCard className="h-4 w-4 text-success-green" />;
       case 'ticket': return <MessageSquare className="h-4 w-4 text-primary" />;
       case 'warning': return <AlertTriangle className="h-4 w-4 text-warning-orange" />;
-      default: return <Bell className="h-4 w-4 text-muted-foreground" />;
+      case 'outage': return <WifiOff className="h-4 w-4 text-destructive" />;
+      case 'maintenance': return <AlertTriangle className="h-4 w-4 text-warning-orange" />;
+      case 'promotion': return <Megaphone className="h-4 w-4 text-success-green" />;
+      default: return <Info className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -208,7 +298,7 @@ const NotificationsPanel = () => {
                   <div className="mt-0.5">{getIcon(n.type)}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">{n.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{n.message}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">{formatTime(n.created_at)}</p>
                   </div>
                 </div>
