@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban, LogOut, Link2 } from 'lucide-react';
+import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban, LogOut, Link2, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from '@/components/Dashboard/EditUserDialog';
 import EditTechnicalDataDialog from '@/components/Dashboard/EditTechnicalDataDialog';
@@ -15,6 +15,7 @@ import LiveTrafficMonitor from '@/components/Admin/LiveTrafficMonitor';
 import MassSuspension from '@/components/Admin/MassSuspension';
 import WithdrawalRequestsPanel from '@/components/Admin/WithdrawalRequestsPanel';
 import OdooIntegrationPanel from '@/components/Admin/OdooIntegrationPanel';
+import AdminNotificationsPanel from '@/components/Admin/AdminNotificationsPanel';
 
 interface Profile {
   id: string;
@@ -179,10 +180,11 @@ const Admin = () => {
         {/* Tabs */}
         <Tabs defaultValue={defaultTab} className="space-y-6">
           <div className="glass-card rounded-xl p-1.5">
-            <TabsList className="grid w-full grid-cols-8 bg-transparent">
+            <TabsList className="grid w-full grid-cols-9 bg-transparent">
               {[
                 { value: 'users', icon: Users, label: 'Usuarios' },
                 { value: 'tickets', icon: Ticket, label: 'Tickets' },
+                { value: 'notifications', icon: Bell, label: 'Avisos' },
                 { value: 'withdrawals', icon: LogOut, label: 'Retiros' },
                 { value: 'traffic', icon: Activity, label: 'Tráfico' },
                 { value: 'suspension', icon: Ban, label: 'Cortes' },
@@ -266,6 +268,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="tickets"><AdminTicketsPanel /></TabsContent>
+          <TabsContent value="notifications"><AdminNotificationsPanel /></TabsContent>
           <TabsContent value="withdrawals"><WithdrawalRequestsPanel /></TabsContent>
           <TabsContent value="traffic"><LiveTrafficMonitor /></TabsContent>
           <TabsContent value="suspension"><MassSuspension /></TabsContent>
