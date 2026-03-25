@@ -268,6 +268,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="tickets"><AdminTicketsPanel /></TabsContent>
+          <TabsContent value="notifications"><AdminNotificationsPanel /></TabsContent>
           <TabsContent value="withdrawals"><WithdrawalRequestsPanel /></TabsContent>
           <TabsContent value="traffic"><LiveTrafficMonitor /></TabsContent>
           <TabsContent value="suspension"><MassSuspension /></TabsContent>
