@@ -115,7 +115,7 @@ const AdminNotificationsPanel = () => {
       return count || 0;
     }
 
-    const fieldMap: Record<string, string> = {
+    const fieldMap: Record<string, keyof typeof profiles extends never ? string : string> = {
       node: 'node',
       olt: 'olt_equipment',
       sector: 'sector',
@@ -129,7 +129,7 @@ const AdminNotificationsPanel = () => {
     const { count } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
-      .eq(field, targetValue);
+      .eq(field as any, targetValue);
 
     return count || 0;
   };
