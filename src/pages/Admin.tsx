@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban, LogOut, Link2 } from 'lucide-react';
+import { Users, Settings, BarChart3, Shield, ArrowLeft, Ticket, Activity, Ban, LogOut, Link2, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import EditUserDialog from '@/components/Dashboard/EditUserDialog';
 import EditTechnicalDataDialog from '@/components/Dashboard/EditTechnicalDataDialog';

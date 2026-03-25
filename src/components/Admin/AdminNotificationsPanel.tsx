@@ -94,10 +94,8 @@ const AdminNotificationsPanel = () => {
     if (!field) return;
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(field)
-        .not(field, 'is', null);
+      const query = supabase.from('profiles').select(field as any);
+      const { data, error } = await (query as any).not(field, 'is', null);
 
       if (error) throw error;
 
