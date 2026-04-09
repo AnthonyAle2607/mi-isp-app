@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Bell, CheckCircle, AlertTriangle, CreditCard, MessageSquare, Trash2, WifiOff, Info, Megaphone } from 'lucide-react';
+import { Bell, CheckCircle, AlertTriangle, CreditCard, MessageSquare, Trash2, WifiOff, Info, Megaphone, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,6 +14,32 @@ interface Notification {
   read: boolean;
   created_at: string;
 }
+
+const NotificationItem = ({ notification: n, getIcon, formatTime }: { notification: Notification; getIcon: (type: Notification['type']) => React.ReactNode; formatTime: (d: string) => string }) => {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = n.message.length > 80;
+
+  return (
+    <div
+      className={`p-3 flex gap-3 transition-colors cursor-pointer ${n.read ? 'opacity-60' : 'bg-primary/5'}`}
+      onClick={() => isLong && setExpanded(!expanded)}
+    >
+      <div className="mt-0.5">{getIcon(n.type)}</div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground">{n.title}</p>
+        <p className={`text-xs text-muted-foreground ${expanded ? '' : 'line-clamp-2'}`}>{n.message}</p>
+        <div className="flex items-center gap-1 mt-1">
+          <p className="text-xs text-muted-foreground/60">{formatTime(n.created_at)}</p>
+          {isLong && (
+            expanded
+              ? <ChevronUp className="h-3 w-3 text-muted-foreground/60" />
+              : <ChevronDown className="h-3 w-3 text-muted-foreground/60" />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const NotificationsPanel = () => {
   const { user } = useAuth();
@@ -294,14 +320,7 @@ const NotificationsPanel = () => {
           ) : (
             <div className="divide-y divide-border/50">
               {notifications.map((n) => (
-                <div key={n.id} className={`p-3 flex gap-3 transition-colors ${n.read ? 'opacity-60' : 'bg-primary/5'}`}>
-                  <div className="mt-0.5">{getIcon(n.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{n.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">{formatTime(n.created_at)}</p>
-                  </div>
-                </div>
+                <NotificationItem key={n.id} notification={n} getIcon={getIcon} formatTime={formatTime} />
               ))}
             </div>
           )}
