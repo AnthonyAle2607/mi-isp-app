@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allow manual trigger from GitHub panel
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Web Assets
+        run: npm run build
+
+      - name: Setup Java (Android SDK requires it)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Restore or Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build APK using Gradle
+        working-directory: ./android
+        run: bash ./gradlew assembleDebug
+
+      - name: Upload APK result
+        uses: actions/upload-artifact@v4
+        with:
+          name: Silverdata-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
