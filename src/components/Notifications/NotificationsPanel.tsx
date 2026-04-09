@@ -294,14 +294,7 @@ const NotificationsPanel = () => {
           ) : (
             <div className="divide-y divide-border/50">
               {notifications.map((n) => (
-                <div key={n.id} className={`p-3 flex gap-3 transition-colors ${n.read ? 'opacity-60' : 'bg-primary/5'}`}>
-                  <div className="mt-0.5">{getIcon(n.type)}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">{n.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{n.message}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">{formatTime(n.created_at)}</p>
-                  </div>
-                </div>
+                <NotificationItem key={n.id} notification={n} getIcon={getIcon} formatTime={formatTime} />
               ))}
             </div>
           )}
