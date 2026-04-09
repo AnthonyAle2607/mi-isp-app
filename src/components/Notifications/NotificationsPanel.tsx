@@ -285,7 +285,7 @@ const NotificationsPanel = () => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative hidden sm:flex hover:bg-secondary/60 h-9 w-9">
+        <Button variant="ghost" size="icon" className="relative flex hover:bg-secondary/60 h-9 w-9">
           <Bell className="h-4 w-4 text-muted-foreground" />
           {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-primary rounded-full flex items-center justify-center text-[10px] font-bold text-primary-foreground">
