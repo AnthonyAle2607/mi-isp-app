@@ -121,25 +121,40 @@ const Index = () => {
       <main className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6 sm:space-y-8 fade-in-up">
 
         {/* Welcome Hero */}
-        <div className="relative overflow-hidden rounded-2xl p-6 sm:p-8 glass-card shine">
-          <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full bg-primary/8 blur-3xl pointer-events-none" />
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold text-primary uppercase tracking-widest mb-2">Portal de Cliente</p>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-                Bienvenido a <span className="gradient-text">Silverdata</span>
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Internet ilimitado · Estabilidad garantizada
-              </p>
-            </div>
-            <div className="flex gap-2 shrink-0">
-              <button
-                onClick={() => setChangePlanOpen(true)}
-                className="px-4 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary text-sm font-medium transition-all"
-              >
-                Cambiar Plan
-              </button>
+        <div className="relative overflow-hidden rounded-2xl border border-border/30">
+          {/* Animated background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-card to-card" />
+          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary/8 blur-[80px] pointer-events-none animate-pulse" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-primary/5 blur-[60px] pointer-events-none" />
+          
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)',
+            backgroundSize: '24px 24px'
+          }} />
+
+          <div className="relative z-10 p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/15">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[10px] font-semibold text-primary uppercase tracking-widest">Conectado</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight">
+                  Bienvenido a <span className="bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent">Silverdata</span>
+                </h1>
+                <p className="text-sm text-muted-foreground max-w-md">
+                  Internet ilimitado de alta velocidad · Conexión estable 24/7
+                </p>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => setChangePlanOpen(true)}
+                  className="px-5 py-2.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Cambiar Plan
+                </button>
+              </div>
             </div>
           </div>
         </div>
