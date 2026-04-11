@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CreditCard, Plus, Calendar, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -122,12 +123,15 @@ const PaymentHistory = () => {
           )}
         </div>
 
-        {showPaymentForm && (
-          <PaymentForm
-            onClose={() => setShowPaymentForm(false)}
-            onSuccess={fetchPayments}
-          />
-        )}
+        {/* Payment Form as Dialog */}
+        <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
+          <DialogContent className="sm:max-w-md p-0 gap-0 overflow-hidden">
+            <PaymentForm
+              onClose={() => setShowPaymentForm(false)}
+              onSuccess={fetchPayments}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -33,13 +33,8 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
   const speedRef = useRef(0);
   const phaseRef = useRef<TestPhase>('idle');
 
-  useEffect(() => {
-    speedRef.current = currentSpeed;
-  }, [currentSpeed]);
-
-  useEffect(() => {
-    phaseRef.current = phase;
-  }, [phase]);
+  useEffect(() => { speedRef.current = currentSpeed; }, [currentSpeed]);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
 
   // Canvas particle animation
   useEffect(() => {
@@ -59,15 +54,14 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
 
     const w = () => canvas.width / 2;
     const h = () => canvas.height / 2;
-
     const getSpeedIntensity = () => Math.min(speedRef.current / 200, 1);
     
     const getHueForSpeed = (speed: number) => {
-      if (speed < 10) return 220; // blue
-      if (speed < 30) return 180; // cyan
-      if (speed < 80) return 140; // green
-      if (speed < 150) return 50;  // yellow
-      return 15; // orange/red for very fast
+      if (speed < 10) return 220;
+      if (speed < 30) return 180;
+      if (speed < 80) return 140;
+      if (speed < 150) return 50;
+      return 15;
     };
 
     const spawnParticles = (count: number) => {
@@ -98,11 +92,9 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
       const isRunning = phaseRef.current !== 'idle' && phaseRef.current !== 'complete';
       const isComplete = phaseRef.current === 'complete';
 
-      // Clear with trail effect
       ctx.fillStyle = 'rgba(10, 12, 20, 0.15)';
       ctx.fillRect(0, 0, width, height);
 
-      // Central glow
       const glowRadius = 40 + intensity * 60;
       const hue = getHueForSpeed(speedRef.current);
       const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowRadius);
@@ -123,7 +115,6 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
 
-      // Spawn particles
       if (isRunning) {
         spawnParticles(Math.floor(2 + intensity * 8));
       } else if (isComplete) {
@@ -132,34 +123,25 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
         if (Math.random() < 0.15) spawnParticles(1);
       }
 
-      // Update & draw particles
       particlesRef.current = particlesRef.current.filter(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vx *= 0.995;
-        p.vy *= 0.995;
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.995; p.vy *= 0.995;
         p.life -= 1 / p.maxLife;
-
         if (p.life <= 0) return false;
-
         const alpha = p.life * (0.4 + intensity * 0.5);
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${p.hue}, 80%, 65%, ${alpha})`;
         ctx.fill();
-
-        // Glow around particle
         if (p.size > 1.5 && isRunning) {
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
           ctx.fillStyle = `hsla(${p.hue}, 70%, 50%, ${alpha * 0.1})`;
           ctx.fill();
         }
-
         return true;
       });
 
-      // Orbiting rings when running
       if (isRunning) {
         const time = Date.now() / 1000;
         for (let i = 0; i < 2; i++) {
@@ -172,7 +154,6 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
         }
       }
 
-      // Ping waves
       if (phaseRef.current === 'ping') {
         const time = Date.now() / 300;
         for (let i = 0; i < 3; i++) {
@@ -192,7 +173,6 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
     };
 
     animate();
-
     return () => {
       cancelAnimationFrame(animationRef.current);
       window.removeEventListener('resize', resize);
@@ -323,45 +303,88 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
 
   const getPhaseLabel = () => {
     switch (phase) {
-      case 'ping': return 'Midiendo latencia...';
-      case 'download': return 'Descargando...';
-      case 'upload': return 'Subiendo...';
-      case 'complete': return 'Prueba completada';
-      default: return 'Listo para iniciar';
+      case 'ping': return 'MIDIENDO LATENCIA';
+      case 'download': return 'DOWNLOAD STREAM';
+      case 'upload': return 'UPLOAD STREAM';
+      case 'complete': return 'PRUEBA COMPLETADA';
+      default: return 'LISTO PARA INICIAR';
     }
   };
 
+  const getPhaseIcon = () => {
+    switch (phase) {
+      case 'download': return <Download className="h-4 w-4" />;
+      case 'upload': return <Upload className="h-4 w-4" />;
+      default: return <Activity className="h-4 w-4" />;
+    }
+  };
+
+  const displaySpeed = phase === 'complete' ? results.download : currentSpeed;
+
   return (
-    <div className="rounded-2xl overflow-hidden border border-border/50 bg-[hsl(220,20%,6%)]">
-      {/* Canvas area */}
-      <div className="relative h-64 sm:h-72">
+    <div className="rounded-2xl overflow-hidden border border-border/30 bg-[hsl(220,20%,6%)]">
+      {/* Canvas area with overlay data */}
+      <div className="relative h-72 sm:h-80">
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full"
           style={{ background: 'radial-gradient(ellipse at center, hsl(220,30%,10%) 0%, hsl(220,20%,4%) 100%)' }}
         />
         
-        {/* Overlay: speed + phase */}
+        {/* Top labels */}
+        <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-start pointer-events-none">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 text-white/40">
+              {getPhaseIcon()}
+              <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{getPhaseLabel()}</span>
+            </div>
+          </div>
+          {results.ping > 0 && (
+            <div className="text-right">
+              <p className="text-[10px] text-white/30 uppercase tracking-wider">Latencia</p>
+              <p className="text-sm font-bold text-white/70">{results.ping}<span className="text-[10px] text-white/40 ml-0.5">ms</span></p>
+            </div>
+          )}
+        </div>
+        
+        {/* Central speed display */}
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-          <span className="text-5xl sm:text-6xl font-black tabular-nums tracking-tight" style={{
-            color: currentSpeed > 0 || phase === 'complete' 
-              ? `hsl(${currentSpeed < 10 ? 220 : currentSpeed < 30 ? 180 : currentSpeed < 80 ? 140 : currentSpeed < 150 ? 50 : 15}, 75%, 65%)`
-              : 'hsl(220, 30%, 50%)',
-            textShadow: isRunning ? `0 0 30px hsla(${currentSpeed < 80 ? 180 : 50}, 60%, 50%, 0.4)` : 'none',
-            transition: 'color 0.3s'
-          }}>
-            {phase === 'complete' ? results.download.toFixed(1) : currentSpeed.toFixed(1)}
-          </span>
-          <span className="text-sm font-medium text-white/50 tracking-widest uppercase mt-1">
-            Mbps
-          </span>
-          <span className="text-xs text-white/35 mt-2">{getPhaseLabel()}</span>
+          <div className="text-center">
+            <span className="text-6xl sm:text-7xl font-black tabular-nums tracking-tight leading-none" style={{
+              color: displaySpeed > 0 
+                ? `hsl(${displaySpeed < 10 ? 220 : displaySpeed < 30 ? 180 : displaySpeed < 80 ? 140 : displaySpeed < 150 ? 50 : 15}, 75%, 70%)`
+                : 'hsl(220, 20%, 35%)',
+              textShadow: isRunning 
+                ? `0 0 40px hsla(${currentSpeed < 80 ? 180 : 50}, 60%, 50%, 0.5), 0 0 80px hsla(${currentSpeed < 80 ? 180 : 50}, 60%, 50%, 0.2)` 
+                : 'none',
+              transition: 'color 0.3s'
+            }}>
+              {displaySpeed.toFixed(1)}
+            </span>
+            <div className="mt-1">
+              <span className="text-sm font-semibold text-white/40 tracking-[0.3em] uppercase">Mbps</span>
+            </div>
+          </div>
         </div>
 
-        {/* Progress arc */}
+        {/* Bottom info during running */}
+        {(phase === 'download' || phase === 'upload') && (
+          <div className="absolute bottom-12 left-0 right-0 z-10 pointer-events-none">
+            <div className="flex justify-center gap-8 text-center">
+              {phase === 'upload' && results.download > 0 && (
+                <div>
+                  <p className="text-[10px] text-white/30 uppercase tracking-wider">Download</p>
+                  <p className="text-sm font-bold text-white/60">{results.download.toFixed(1)} <span className="text-[10px]">Mbps</span></p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Progress bar */}
         {isRunning && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-            <div className="w-48 h-1 bg-white/10 rounded-full overflow-hidden">
+          <div className="absolute bottom-4 left-4 right-4 z-10">
+            <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -370,7 +393,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
                 }}
               />
             </div>
-            <div className="flex justify-between text-[10px] text-white/30 mt-1 px-1">
+            <div className="flex justify-between text-[9px] text-white/25 mt-1 px-1">
               <span>Ping</span>
               <span>Descarga</span>
               <span>Subida</span>
@@ -419,7 +442,10 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
           </div>
         </div>
 
-        <p className="text-[10px] text-white/20 text-center">Servidor: Cloudflare Global CDN</p>
+        <div className="flex items-center justify-between text-[10px] text-white/20 px-1">
+          <span>Servidor: Cloudflare Global CDN</span>
+          <span>ISP: Silverdata</span>
+        </div>
       </div>
     </div>
   );
