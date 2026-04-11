@@ -23,7 +23,8 @@ import {
   TrendingUp,
   Download,
   Upload,
-  UserX
+  UserX,
+  User
 } from "lucide-react";
 
 interface ProfileData {
@@ -33,6 +34,9 @@ interface ProfileData {
   plan_id: string | null;
   connection_type: 'fibra' | 'radio';
   next_billing_date: string | null;
+  full_name: string;
+  cedula: string;
+  cedula_type: string;
 }
 
 const Index = () => {
@@ -44,7 +48,10 @@ const Index = () => {
     pending_balance: 0,
     plan_id: null,
     connection_type: 'fibra',
-    next_billing_date: null
+    next_billing_date: null,
+    full_name: '',
+    cedula: '',
+    cedula_type: 'V'
   });
   const [lastSpeedTest, setLastSpeedTest] = useState<number | null>(null);
   const [changePlanOpen, setChangePlanOpen] = useState(false);
@@ -69,7 +76,7 @@ const Index = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, contract_number, pending_balance, plan_id, connection_type, next_billing_date')
+        .select('plan_type, contract_number, pending_balance, plan_id, connection_type, next_billing_date, full_name, cedula, cedula_type')
         .eq('user_id', user?.id)
         .single();
 
@@ -82,7 +89,10 @@ const Index = () => {
           pending_balance: data.pending_balance || 0,
           plan_id: data.plan_id,
           connection_type: (data.connection_type as 'fibra' | 'radio') || 'fibra',
-          next_billing_date: data.next_billing_date
+          next_billing_date: data.next_billing_date,
+          full_name: data.full_name || '',
+          cedula: data.cedula || '',
+          cedula_type: data.cedula_type || 'V'
         });
       }
     } catch (error) {
@@ -90,16 +100,21 @@ const Index = () => {
     }
   };
 
-  // Handle speed test completion
   const handleSpeedTestComplete = (downloadSpeed: number) => {
     setLastSpeedTest(downloadSpeed);
   };
 
-  // Format next billing date
   const formatBillingDate = () => {
     if (!profileData.next_billing_date) return 'No definida';
     const date = new Date(profileData.next_billing_date);
     return date.toLocaleDateString('es-VE', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Buenos días';
+    if (hour < 18) return 'Buenas tardes';
+    return 'Buenas noches';
   };
 
   if (loading) {
@@ -122,12 +137,10 @@ const Index = () => {
 
         {/* Welcome Hero */}
         <div className="relative overflow-hidden rounded-2xl border border-border/30">
-          {/* Animated background */}
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-card to-card" />
           <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary/8 blur-[80px] pointer-events-none animate-pulse" />
           <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-primary/5 blur-[60px] pointer-events-none" />
           
-          {/* Grid pattern overlay */}
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: 'radial-gradient(circle, hsl(var(--primary)) 1px, transparent 1px)',
             backgroundSize: '24px 24px'
@@ -141,8 +154,22 @@ const Index = () => {
                   <span className="text-[10px] font-semibold text-primary uppercase tracking-widest">Conectado</span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight">
-                  Bienvenido a <span className="bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent">Silverdata</span>
+                  {getGreeting()}, <span className="bg-gradient-to-r from-primary via-primary to-primary/60 bg-clip-text text-transparent">{profileData.full_name || 'Usuario'}</span>
                 </h1>
+                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  {profileData.cedula && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary/40 border border-border/30">
+                      <User className="h-3.5 w-3.5" />
+                      <span className="font-mono font-medium text-foreground">{profileData.cedula_type}-{profileData.cedula}</span>
+                    </span>
+                  )}
+                  {profileData.contract_number && profileData.contract_number !== 'No asignado' && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary/40 border border-border/30">
+                      <span className="text-xs text-muted-foreground">CT:</span>
+                      <span className="font-mono font-medium text-foreground">{profileData.contract_number}</span>
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground max-w-md">
                   Internet ilimitado de alta velocidad · Conexión estable 24/7
                 </p>
@@ -202,27 +229,6 @@ const Index = () => {
           <div className="space-y-6">
             <SpeedTest onTestComplete={handleSpeedTestComplete} />
             <NetworkInfo />
-
-            {/* Network Status */}
-            <div className="glass-card rounded-xl p-5">
-              <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-                <Activity className="h-4 w-4 text-primary" />
-                Estado de la Red en Tiempo Real
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: Download, label: "Descarga", value: "98.5%", color: "success-green" },
-                  { icon: Upload, label: "Subida", value: "96.8%", color: "success-green" },
-                ].map(({ icon: Icon, label, value, color }) => (
-                  <div key={label} className="rounded-xl bg-secondary/20 p-4 text-center space-y-1">
-                    <Icon className={`h-5 w-5 text-${color} mx-auto`} />
-                    <p className="text-xs text-muted-foreground">{label}</p>
-                    <p className="text-lg font-bold text-foreground">{value}</p>
-                    <span className={`text-xs text-${color}`}>Excelente</span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Quick Actions */}
             <div className="glass-card rounded-xl p-5">

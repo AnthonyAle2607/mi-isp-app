@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Ticket, Plus, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Ticket, Plus, Clock, CheckCircle2, AlertCircle, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -25,12 +25,16 @@ interface SupportTicket {
   updated_at: string;
 }
 
+const TICKETS_PER_PAGE = 5;
+
 const SupportTickets = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -79,19 +83,22 @@ const SupportTickets = () => {
     }
   };
 
+  const totalPages = Math.max(1, Math.ceil(tickets.length / TICKETS_PER_PAGE));
+  const paginatedTickets = tickets.slice((page - 1) * TICKETS_PER_PAGE, page * TICKETS_PER_PAGE);
+
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      open: { variant: 'default', icon: Clock, color: 'text-primary' },
-      in_progress: { variant: 'secondary', icon: AlertCircle, color: 'text-warning-orange' },
-      resolved: { variant: 'default', icon: CheckCircle2, color: 'text-success-green' },
-      closed: { variant: 'outline', icon: CheckCircle2, color: 'text-muted-foreground' }
+    const variants: Record<string, { variant: 'default' | 'secondary' | 'outline'; icon: typeof Clock; color: string; label: string }> = {
+      open: { variant: 'default', icon: Clock, color: 'text-primary', label: 'Abierto' },
+      in_progress: { variant: 'secondary', icon: AlertCircle, color: 'text-warning-orange', label: 'En Progreso' },
+      resolved: { variant: 'default', icon: CheckCircle2, color: 'text-success-green', label: 'Resuelto' },
+      closed: { variant: 'outline', icon: CheckCircle2, color: 'text-muted-foreground', label: 'Cerrado' }
     };
     const config = variants[status] || variants.open;
     const Icon = config.icon;
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className={`h-3 w-3 ${config.color}`} />
-        {status === 'open' ? 'Abierto' : status === 'in_progress' ? 'En Progreso' : status === 'resolved' ? 'Resuelto' : 'Cerrado'}
+        {config.label}
       </Badge>
     );
   };
@@ -119,7 +126,9 @@ const SupportTickets = () => {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-foreground">Tickets de Soporte</h3>
-            <p className="text-sm text-muted-foreground">Gestiona tus solicitudes y reportes</p>
+            <p className="text-sm text-muted-foreground">
+              {tickets.length} ticket{tickets.length !== 1 ? 's' : ''} · Página {page} de {totalPages}
+            </p>
           </div>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -180,34 +189,91 @@ const SupportTickets = () => {
           <p className="text-xs text-muted-foreground">Crea uno para reportar problemas</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {tickets.map((ticket) => (
-            <div key={ticket.id} className="rounded-xl p-4 space-y-3 bg-secondary/20 border border-border/30">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <h4 className="font-semibold text-foreground text-sm">{ticket.title}</h4>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ticket.description}</p>
+        <>
+          <div className="space-y-3">
+            {paginatedTickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                className="rounded-xl p-4 bg-secondary/20 border border-border/30 cursor-pointer hover:bg-secondary/30 transition-colors"
+                onClick={() => setExpandedTicket(expandedTicket === ticket.id ? null : ticket.id)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-foreground text-sm truncate">{ticket.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {format(new Date(ticket.created_at), 'dd MMM yyyy', { locale: es })}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {getStatusBadge(ticket.status)}
+                    {ticket.admin_response && (
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
                 </div>
+
+                {expandedTicket === ticket.id && (
+                  <div className="mt-3 pt-3 border-t border-border/30 space-y-3 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                    <p className="text-sm text-muted-foreground">{ticket.description}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {getTypeBadge(ticket.ticket_type)}
+                      <Badge variant="outline" className="text-xs">
+                        {ticket.priority === 'urgent' ? '🔴 Urgente' : ticket.priority === 'high' ? '🟠 Alta' : ticket.priority === 'medium' ? '🟡 Media' : '🟢 Baja'}
+                      </Badge>
+                    </div>
+                    {ticket.admin_response && (
+                      <div className="bg-primary/5 rounded-lg p-3 border-l-2 border-primary">
+                        <p className="text-xs font-semibold text-primary mb-1">Respuesta del Administrador:</p>
+                        <p className="text-sm text-foreground">{ticket.admin_response}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                {getStatusBadge(ticket.status)}
-                {getTypeBadge(ticket.ticket_type)}
-                <Badge variant="outline" className="text-xs">
-                  {ticket.priority === 'urgent' ? '🔴 Urgente' : ticket.priority === 'high' ? '🟠 Alta' : ticket.priority === 'medium' ? '🟡 Media' : '🟢 Baja'}
-                </Badge>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="h-8"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`h-7 w-7 rounded-lg text-xs font-medium transition-colors ${
+                      p === page
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-secondary/40'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
               </div>
-              {ticket.admin_response && (
-                <div className="bg-primary/5 rounded-lg p-3 border-l-2 border-primary">
-                  <p className="text-xs font-semibold text-primary mb-1">Respuesta del Administrador:</p>
-                  <p className="text-sm text-foreground">{ticket.admin_response}</p>
-                </div>
-              )}
-              <div className="text-xs text-muted-foreground">
-                Creado: {format(new Date(ticket.created_at), 'PPp', { locale: es })}
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="h-8"
+              >
+                Siguiente
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </div>
   );

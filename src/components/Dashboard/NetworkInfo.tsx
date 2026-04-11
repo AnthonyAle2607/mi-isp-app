@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Globe, Shield, AlertCircle } from "lucide-react";
+import { Globe, Shield, AlertCircle, MessageCircle } from "lucide-react";
 
 const NetworkInfo = () => {
   const [ipInfo, setIpInfo] = useState<{
@@ -17,12 +16,9 @@ const NetworkInfo = () => {
 
   useEffect(() => {
     const fetchIPInfo = async () => {
-      console.log('🔍 Obteniendo información de IP...');
-      
       let ipv4 = "";
       let ipv6 = "";
 
-      // Try to get IPv4
       const ipv4Apis = [
         { url: 'https://api.ipify.org?format=json', name: 'ipify' },
         { url: 'https://ipv4.icanhazip.com', name: 'icanhazip-v4', isText: true },
@@ -32,35 +28,19 @@ const NetworkInfo = () => {
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
-          
-          const response = await fetch(api.url, {
-            method: 'GET',
-            signal: controller.signal,
-          });
-          
+          const response = await fetch(api.url, { method: 'GET', signal: controller.signal });
           clearTimeout(timeoutId);
-          
           if (!response.ok) continue;
-          
           if (api.isText) {
             const text = (await response.text()).trim();
-            if (text && !text.includes(':')) {
-              ipv4 = text;
-              break;
-            }
+            if (text && !text.includes(':')) { ipv4 = text; break; }
           } else {
             const data = await response.json();
-            if (data.ip && !data.ip.includes(':')) {
-              ipv4 = data.ip;
-              break;
-            }
+            if (data.ip && !data.ip.includes(':')) { ipv4 = data.ip; break; }
           }
-        } catch (error) {
-          console.log(`IPv4 API ${api.name} failed`);
-        }
+        } catch { /* skip */ }
       }
 
-      // Try to get IPv6
       const ipv6Apis = [
         { url: 'https://api64.ipify.org?format=json', name: 'ipify64' },
         { url: 'https://ipv6.icanhazip.com', name: 'icanhazip-v6', isText: true },
@@ -70,50 +50,25 @@ const NetworkInfo = () => {
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 5000);
-          
-          const response = await fetch(api.url, {
-            method: 'GET',
-            signal: controller.signal,
-          });
-          
+          const response = await fetch(api.url, { method: 'GET', signal: controller.signal });
           clearTimeout(timeoutId);
-          
           if (!response.ok) continue;
-          
           if (api.isText) {
             const text = (await response.text()).trim();
-            if (text && text.includes(':')) {
-              ipv6 = text;
-              break;
-            }
+            if (text && text.includes(':')) { ipv6 = text; break; }
           } else {
             const data = await response.json();
-            if (data.ip && data.ip.includes(':')) {
-              ipv6 = data.ip;
-              break;
-            }
+            if (data.ip && data.ip.includes(':')) { ipv6 = data.ip; break; }
           }
-        } catch (error) {
-          console.log(`IPv6 API ${api.name} failed`);
-        }
+        } catch { /* skip */ }
       }
 
-      // If IPv6 API returned IPv4, it means no IPv6
-      if (!ipv6 || !ipv6.includes(':')) {
-        ipv6 = "";
-      }
+      if (!ipv6 || !ipv6.includes(':')) ipv6 = "";
+      if (!ipv4 && ipv6 && !ipv6.includes(':')) { ipv4 = ipv6; ipv6 = ""; }
 
-      // If we couldn't get IPv4 but have a non-v6 IP
-      if (!ipv4 && ipv6 && !ipv6.includes(':')) {
-        ipv4 = ipv6;
-        ipv6 = "";
-      }
-
-      console.log(`✅ IPv4: ${ipv4 || 'No disponible'}, IPv6: ${ipv6 || 'No activo'}`);
-      
       setIpInfo({
         ipv4: ipv4 || "No disponible",
-        ipv6: ipv6,
+        ipv6,
         hasIPv6: !!ipv6,
         loading: false
       });
@@ -136,7 +91,6 @@ const NetworkInfo = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          {/* IPv4 */}
           <div className="bg-secondary/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Globe className="h-5 w-5 text-primary" />
@@ -146,23 +100,16 @@ const NetworkInfo = () => {
             {ipInfo.loading ? (
               <p className="text-sm font-mono text-foreground">Cargando...</p>
             ) : (
-              <p className="text-sm font-mono text-foreground truncate" title={ipInfo.ipv4}>
-                {ipInfo.ipv4}
-              </p>
+              <p className="text-sm font-mono text-foreground truncate" title={ipInfo.ipv4}>{ipInfo.ipv4}</p>
             )}
           </div>
           
-          {/* IPv6 */}
           <div className="bg-secondary/30 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="h-5 w-5 text-primary" />
               <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                ipInfo.hasIPv6 
-                  ? 'bg-success-green/20 text-success-green' 
-                  : 'bg-muted text-muted-foreground'
-              }`}>
-                IPv6
-              </span>
+                ipInfo.hasIPv6 ? 'bg-success-green/20 text-success-green' : 'bg-muted text-muted-foreground'
+              }`}>IPv6</span>
             </div>
             {ipInfo.loading ? (
               <>
@@ -172,9 +119,7 @@ const NetworkInfo = () => {
             ) : ipInfo.hasIPv6 ? (
               <>
                 <p className="text-xs text-muted-foreground">Tu IPv6</p>
-                <p className="text-xs font-mono text-foreground truncate" title={ipInfo.ipv6}>
-                  {ipInfo.ipv6}
-                </p>
+                <p className="text-xs font-mono text-foreground truncate" title={ipInfo.ipv6}>{ipInfo.ipv6}</p>
               </>
             ) : (
               <>
@@ -188,24 +133,36 @@ const NetworkInfo = () => {
           </div>
         </div>
 
-        {!ipInfo.loading && (
-          <div className={`rounded-lg p-3 border ${
-            ipInfo.hasIPv6 
-              ? 'bg-success-green/5 border-success-green/20' 
-              : 'bg-warning-orange/5 border-warning-orange/20'
-          }`}>
+        {!ipInfo.loading && !ipInfo.hasIPv6 && (
+          <div className="rounded-xl p-4 border border-destructive/30 bg-destructive/5 space-y-2">
+            <div className="flex items-start gap-3">
+              <div className="p-1.5 rounded-lg bg-destructive/10 shrink-0 mt-0.5">
+                <AlertCircle className="h-4 w-4 text-destructive" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-destructive">⚠ IPv6 no activo — Posibles inconvenientes</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Tu conexión no tiene IPv6 activo. Esto puede causar <strong className="text-foreground">lentitud al cargar páginas web</strong> o 
+                  dificultades para acceder a ciertos servicios modernos.
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Por favor comunícate con el <strong className="text-foreground">área de soporte</strong> o 
+                  conversa con <strong className="text-primary">Silvia</strong> (nuestro asistente virtual) para más información y asistencia.
+                </p>
+                <div className="flex items-center gap-1.5 pt-1">
+                  <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs text-primary font-medium">Abre el chat con Silvia abajo a la derecha</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!ipInfo.loading && ipInfo.hasIPv6 && (
+          <div className="rounded-lg p-3 border bg-success-green/5 border-success-green/20">
             <p className="text-xs text-muted-foreground">
-              {ipInfo.hasIPv6 ? (
-                <>
-                  ✓ Tu conexión tiene <strong className="text-success-green">IPv6 activo</strong>. 
-                  Esto proporciona mejor rendimiento y mayor compatibilidad con servicios modernos.
-                </>
-              ) : (
-                <>
-                  <span className="text-warning-orange">⚠ Tu conexión no tiene IPv6 activo.</span>{' '}
-                  IPv6 ofrece mejor rendimiento y mayor número de direcciones. Contacta a soporte si deseas activarlo.
-                </>
-              )}
+              ✓ Tu conexión tiene <strong className="text-success-green">IPv6 activo</strong>. 
+              Esto proporciona mejor rendimiento y mayor compatibilidad con servicios modernos.
             </p>
           </div>
         )}
