@@ -235,7 +235,7 @@ const Index = () => {
               <h3 className="text-sm font-semibold text-foreground mb-4">Acciones Rápidas</h3>
               <div className="space-y-2">
                 {[
-                  { icon: DollarSign, label: "Ver Facturación", desc: "Consulta tu historial de facturas", onClick: () => {}, danger: false },
+                  { icon: DollarSign, label: "Ver Facturación", desc: "Consulta tu historial de facturas", onClick: () => { document.querySelector('[data-payment-section]')?.scrollIntoView({ behavior: 'smooth' }); }, danger: false },
                   { icon: Wifi, label: "Cambiar Plan", desc: "Explora nuestros planes disponibles", onClick: () => setChangePlanOpen(true), danger: false },
                   { icon: AlertTriangle, label: "Reportar Incidencia", desc: "¿Tienes problemas? Repórtalo aquí", onClick: () => { document.querySelector('[data-tickets-section]')?.scrollIntoView({ behavior: 'smooth' }); }, danger: false },
                   { icon: UserX, label: "Retirar Servicio", desc: "Cancelar tu plan de internet", onClick: () => setCancelServiceOpen(true), danger: true },
@@ -268,7 +268,9 @@ const Index = () => {
               <AccountStatus />
             </div>
             <SupportTickets />
-            <PaymentHistory />
+            <div data-payment-section>
+              <PaymentHistory />
+            </div>
             <DataUsage />
             <PaymentReceipt />
           </div>

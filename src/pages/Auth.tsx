@@ -68,12 +68,9 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      // Check if cedula exists in profiles
+      // Check if cedula exists using RPC (works without auth)
       const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('full_name, cedula, contract_number, user_id')
-        .eq('cedula', cedula)
-        .limit(1);
+        .rpc('lookup_contract_by_cedula', { _cedula: cedula });
 
       if (profileError) throw profileError;
 
