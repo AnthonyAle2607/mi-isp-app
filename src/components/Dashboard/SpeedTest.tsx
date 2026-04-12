@@ -418,23 +418,23 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
 
         {/* Results cards */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="text-center p-3 rounded-xl bg-secondary/50 border border-border/30">
             <Download className="h-4 w-4 text-emerald-400 mx-auto mb-1.5" />
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Descarga</p>
-            <p className="text-lg font-bold text-white">{results.download.toFixed(1)}</p>
-            <p className="text-[10px] text-white/30">Mbps</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Descarga</p>
+            <p className="text-lg font-bold text-foreground">{results.download.toFixed(1)}</p>
+            <p className="text-[10px] text-muted-foreground">Mbps</p>
           </div>
-          <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="text-center p-3 rounded-xl bg-secondary/50 border border-border/30">
             <Upload className="h-4 w-4 text-cyan-400 mx-auto mb-1.5" />
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Subida</p>
-            <p className="text-lg font-bold text-white">{results.upload.toFixed(1)}</p>
-            <p className="text-[10px] text-white/30">Mbps</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Subida</p>
+            <p className="text-lg font-bold text-foreground">{results.upload.toFixed(1)}</p>
+            <p className="text-[10px] text-muted-foreground">Mbps</p>
           </div>
-          <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="text-center p-3 rounded-xl bg-secondary/50 border border-border/30">
             <Activity className="h-4 w-4 text-amber-400 mx-auto mb-1.5" />
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Ping</p>
-            <p className="text-lg font-bold text-white">{results.ping}</p>
-            <p className="text-[10px] text-white/30">ms</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Ping</p>
+            <p className="text-lg font-bold text-foreground">{results.ping}</p>
+            <p className="text-[10px] text-muted-foreground">ms</p>
           </div>
         </div>
 
