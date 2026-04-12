@@ -334,35 +334,31 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
         {/* Top labels */}
         <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-start pointer-events-none">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-white/40">
+            <div className="flex items-center gap-1.5 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5">
               {getPhaseIcon()}
-              <span className="text-[10px] font-bold tracking-[0.2em] uppercase">{getPhaseLabel()}</span>
+              <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-white/80">{getPhaseLabel()}</span>
             </div>
           </div>
           {results.ping > 0 && (
-            <div className="text-right">
-              <p className="text-[10px] text-white/30 uppercase tracking-wider">Latencia</p>
-              <p className="text-sm font-bold text-white/70">{results.ping}<span className="text-[10px] text-white/40 ml-0.5">ms</span></p>
+            <div className="text-right bg-black/50 backdrop-blur-sm rounded-lg px-3 py-1.5">
+              <p className="text-[10px] text-white/60 uppercase tracking-wider">Latencia</p>
+              <p className="text-lg font-bold text-white">{results.ping}<span className="text-xs text-white/60 ml-0.5">ms</span></p>
             </div>
           )}
         </div>
         
         {/* Central speed display */}
         <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-          <div className="text-center">
-            <span className="text-6xl sm:text-7xl font-black tabular-nums tracking-tight leading-none" style={{
-              color: displaySpeed > 0 
-                ? `hsl(${displaySpeed < 10 ? 220 : displaySpeed < 30 ? 180 : displaySpeed < 80 ? 140 : displaySpeed < 150 ? 50 : 15}, 75%, 70%)`
-                : 'hsl(220, 20%, 35%)',
-              textShadow: isRunning 
-                ? `0 0 40px hsla(${currentSpeed < 80 ? 180 : 50}, 60%, 50%, 0.5), 0 0 80px hsla(${currentSpeed < 80 ? 180 : 50}, 60%, 50%, 0.2)` 
-                : 'none',
-              transition: 'color 0.3s'
+          <div className="text-center drop-shadow-2xl">
+            <span className="text-7xl sm:text-8xl font-black tabular-nums tracking-tight leading-none" style={{
+              color: 'white',
+              textShadow: `0 0 20px rgba(255,255,255,0.8), 0 0 60px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.8)`,
+              WebkitTextStroke: '1px rgba(255,255,255,0.3)',
             }}>
               {displaySpeed.toFixed(1)}
             </span>
             <div className="mt-1">
-              <span className="text-sm font-semibold text-white/40 tracking-[0.3em] uppercase">Mbps</span>
+              <span className="text-base font-bold text-white/80 tracking-[0.3em] uppercase drop-shadow-lg">Mbps</span>
             </div>
           </div>
         </div>
@@ -422,23 +418,23 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
 
         {/* Results cards */}
         <div className="grid grid-cols-3 gap-3">
-          <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="text-center p-3 rounded-xl bg-secondary/50 border border-border/30">
             <Download className="h-4 w-4 text-emerald-400 mx-auto mb-1.5" />
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Descarga</p>
-            <p className="text-lg font-bold text-white">{results.download.toFixed(1)}</p>
-            <p className="text-[10px] text-white/30">Mbps</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Descarga</p>
+            <p className="text-lg font-bold text-foreground">{results.download.toFixed(1)}</p>
+            <p className="text-[10px] text-muted-foreground">Mbps</p>
           </div>
-          <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="text-center p-3 rounded-xl bg-secondary/50 border border-border/30">
             <Upload className="h-4 w-4 text-cyan-400 mx-auto mb-1.5" />
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Subida</p>
-            <p className="text-lg font-bold text-white">{results.upload.toFixed(1)}</p>
-            <p className="text-[10px] text-white/30">Mbps</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Subida</p>
+            <p className="text-lg font-bold text-foreground">{results.upload.toFixed(1)}</p>
+            <p className="text-[10px] text-muted-foreground">Mbps</p>
           </div>
-          <div className="text-center p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="text-center p-3 rounded-xl bg-secondary/50 border border-border/30">
             <Activity className="h-4 w-4 text-amber-400 mx-auto mb-1.5" />
-            <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Ping</p>
-            <p className="text-lg font-bold text-white">{results.ping}</p>
-            <p className="text-[10px] text-white/30">ms</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Ping</p>
+            <p className="text-lg font-bold text-foreground">{results.ping}</p>
+            <p className="text-[10px] text-muted-foreground">ms</p>
           </div>
         </div>
 

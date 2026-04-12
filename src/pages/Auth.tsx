@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Wifi, Shield, Zap, ArrowLeft, Phone, Mail, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const emailSchema = z.string().email('Email inválido').min(1, 'El email es requerido');
 const passwordSchema = z.string().min(6, 'La contraseña debe tener al menos 6 caracteres');
@@ -60,23 +61,41 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      fullNameSchema.parse(fullName);
-      emailSchema.parse(email);
-      phoneSchema.parse(phone);
-      passwordSchema.parse(password);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        toast({ title: "Error de validación", description: error.errors[0].message, variant: "destructive" });
-        return;
-      }
+    const cedula = phone.trim(); // reusing phone state for cedula input
+    if (!cedula || cedula.length < 6) {
+      toast({ title: "Error", description: "Ingresa un número de cédula válido (mínimo 6 dígitos)", variant: "destructive" });
+      return;
     }
     setLoading(true);
-    const { error } = await signUpWithBoth(email, phone, password, fullName);
-    if (!error) {
-      setRegisteredEmail(email);
-      setRegisteredPhone(phone);
-      setShowVerificationChoice(true);
+    try {
+      // Check if cedula exists in profiles
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, cedula, contract_number, user_id')
+        .eq('cedula', cedula)
+        .limit(1);
+
+      if (profileError) throw profileError;
+
+      if (!profiles || profiles.length === 0) {
+        toast({
+          title: "Contrato no encontrado",
+          description: `No existe un contrato registrado con la cédula ${cedula}. Comunícate con Silverdata para contratar el servicio.`,
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const profile = profiles[0];
+      // Show the user their info
+      toast({
+        title: "Contrato encontrado",
+        description: `Cliente: ${profile.full_name || 'N/A'} — Contrato: ${profile.contract_number || 'N/A'}. Tu contraseña es tu cédula (${cedula}). Inicia sesión con el correo registrado en tu contrato.`,
+      });
+    } catch (error) {
+      console.error('Error checking cedula:', error);
+      toast({ title: "Error", description: "Ocurrió un error al consultar. Intenta de nuevo.", variant: "destructive" });
     }
     setLoading(false);
   };
@@ -344,7 +363,7 @@ const Auth = () => {
                   Iniciar Sesión
                 </TabsTrigger>
                 <TabsTrigger value="signup" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-sm font-medium transition-all">
-                  Registrarse
+                  Consultar Contrato
                 </TabsTrigger>
               </TabsList>
 
@@ -377,31 +396,16 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fullName" className="text-sm font-medium text-foreground/80">Nombre Completo</Label>
-                    <Input id="fullName" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} required className={inputClass} placeholder="Tu nombre completo" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-sm font-medium text-foreground/80">Correo Electrónico</Label>
-                    <Input id="signup-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className={inputClass} placeholder="tu@email.com" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone-signup" className="text-sm font-medium text-foreground/80">Teléfono</Label>
-                    <Input id="phone-signup" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className={inputClass} placeholder="+584121234567 o 04121234567" />
-                    <p className="text-xs text-muted-foreground">Número venezolano</p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-sm font-medium text-foreground/80">Contraseña</Label>
-                    <div className="relative">
-                      <Input id="signup-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} required className={`${inputClass} pr-10`} placeholder="••••••••" minLength={6} />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Mínimo 6 caracteres</p>
+                    <Label htmlFor="signup-cedula" className="text-sm font-medium text-foreground/80">Cédula de Identidad</Label>
+                    <Input id="signup-cedula" type="text" value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))} required className={inputClass} placeholder="Ej: 30062099" maxLength={10} />
+                    <p className="text-xs text-muted-foreground">Ingresa solo los números de tu cédula</p>
                   </div>
                   <Button type="submit" className="w-full mt-2 shine font-semibold" disabled={loading}>
-                    {loading ? 'Registrando...' : 'Crear Cuenta'}
+                    {loading ? 'Verificando...' : 'Consultar Contrato'}
                   </Button>
+                  <p className="text-xs text-muted-foreground text-center mt-2">
+                    Si tienes un contrato activo con Silverdata, te mostraremos tus datos de acceso.
+                  </p>
                 </form>
               </TabsContent>
             </Tabs>
