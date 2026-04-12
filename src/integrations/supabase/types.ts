@@ -464,6 +464,13 @@ export type Database = {
         Returns: boolean
       }
       is_private_ip: { Args: { ip: string }; Returns: boolean }
+      lookup_contract_by_cedula: {
+        Args: { _cedula: string }
+        Returns: {
+          contract_number: string
+          full_name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"
