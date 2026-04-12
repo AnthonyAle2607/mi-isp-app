@@ -268,7 +268,9 @@ const Index = () => {
               <AccountStatus />
             </div>
             <SupportTickets />
-            <PaymentHistory />
+            <div data-payment-section>
+              <PaymentHistory />
+            </div>
             <DataUsage />
             <PaymentReceipt />
           </div>
