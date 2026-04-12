@@ -173,10 +173,10 @@ const NotificationsPanel = () => {
     if (!user) return [];
 
     try {
-      // Get user profile to determine targeting
+      // Get user profile to determine targeting and creation date
       const { data: profile } = await supabase
         .from('profiles')
-        .select('node, olt_equipment, sector, nap_box, account_status')
+        .select('node, olt_equipment, sector, nap_box, account_status, created_at')
         .eq('user_id', user.id)
         .single();
 
@@ -197,9 +197,15 @@ const NotificationsPanel = () => {
 
       if (!adminNotifs) return [];
 
-      // Filter notifications that target this user
+      // Filter notifications that target this user AND were created after user profile
+      const userCreatedAt = profile?.created_at ? new Date(profile.created_at).getTime() : 0;
+      
       return adminNotifs
         .filter(n => {
+          // Only show notifications created after the user's profile was created
+          const notifTime = new Date(n.created_at).getTime();
+          if (notifTime < userCreatedAt) return false;
+          
           if (n.target_type === 'all') return true;
           if (!profile) return false;
           const fieldMap: Record<string, string | null> = {
