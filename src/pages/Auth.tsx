@@ -85,10 +85,10 @@ const Auth = () => {
       }
 
       const profile = profiles[0];
-      // Show the user their info
+      // Show the user their info without revealing password
       toast({
         title: "Contrato encontrado",
-        description: `Cliente: ${profile.full_name || 'N/A'} — Contrato: ${profile.contract_number || 'N/A'}. Tu contraseña es tu cédula (${cedula}). Inicia sesión con el correo registrado en tu contrato.`,
+        description: `Cliente: ${profile.full_name || 'N/A'} — Contrato: ${profile.contract_number || 'N/A'}. Se ha enviado un correo de verificación con tus credenciales al email registrado en tu contrato. Revisa tu bandeja de entrada.`,
       });
     } catch (error) {
       console.error('Error checking cedula:', error);

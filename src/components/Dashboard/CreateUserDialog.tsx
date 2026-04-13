@@ -120,10 +120,19 @@ const CreateUserDialog = ({ onUserCreated }: CreateUserDialogProps) => {
 
   const handleCreate = async () => {
     // Validation
-    if (!formData.email || !formData.cedula || !formData.fullName) {
+    if (!formData.fullName || !formData.cedula) {
       toast({
         title: "Error",
-        description: "Email, cédula y nombre completo son obligatorios",
+        description: "Nombre completo y cédula son obligatorios",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      toast({
+        title: "Error",
+        description: "Debe ingresar un correo electrónico válido. Es obligatorio para que el cliente pueda iniciar sesión.",
         variant: "destructive",
       });
       return;

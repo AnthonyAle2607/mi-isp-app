@@ -8,7 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import AdminDashboard from "./pages/AdminDashboard";
-import NetworkManagement from "./pages/NetworkManagement";
+
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
@@ -34,7 +34,7 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin-home" element={<AdminDashboard />} />
-              <Route path="/network" element={<NetworkManagement />} />
+              
               <Route path="/landing" element={<Landing />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

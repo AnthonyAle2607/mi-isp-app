@@ -5,7 +5,6 @@ import Header from "@/components/Layout/Header";
 import { Button } from '@/components/ui/button';
 import {
   Users,
-  Network,
   Activity,
   DollarSign,
   Settings,
@@ -46,14 +45,6 @@ const AdminDashboard = () => {
       accent: 'hsl(var(--primary))',
       accentBg: 'hsl(var(--primary) / 0.1)',
       route: '/admin',
-    },
-    {
-      title: 'Gestión de Red',
-      description: 'Monitoreo de dispositivos y topología de red',
-      icon: Network,
-      accent: 'hsl(var(--tech-blue))',
-      accentBg: 'hsl(var(--tech-blue) / 0.1)',
-      route: '/network',
     },
     {
       title: 'Monitor de Tráfico',
@@ -171,7 +162,6 @@ const AdminDashboard = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { icon: Users, label: "Clientes", color: "primary" },
-              { icon: Network, label: "Dispositivos", color: "tech-blue" },
               { icon: Ticket, label: "Tickets abiertos", color: "warning-orange" },
               { icon: DollarSign, label: "Con deuda", color: "destructive" },
             ].map(({ icon: Icon, label, color }) => (
