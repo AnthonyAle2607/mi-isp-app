@@ -68,30 +68,30 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      // Check if cedula exists using RPC (works without auth)
-      const { data: profiles, error: profileError } = await supabase
-        .rpc('lookup_contract_by_cedula', { _cedula: cedula });
+      const { data, error } = await supabase.functions.invoke('send-credentials-email', {
+        body: { cedula },
+      });
 
-      if (profileError) throw profileError;
+      if (error) throw error;
 
-      if (!profiles || profiles.length === 0) {
+      if (data?.error) {
         toast({
           title: "Contrato no encontrado",
-          description: `No existe un contrato registrado con la cédula ${cedula}. Comunícate con Silverdata para contratar el servicio.`,
+          description: data.error === "No se encontró un contrato con esa cédula"
+            ? `No existe un contrato registrado con la cédula ${cedula}. Comunícate con Silverdata para contratar el servicio.`
+            : data.error,
           variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      const profile = profiles[0];
-      // Show the user their info without revealing password
       toast({
-        title: "Contrato encontrado",
-        description: `Cliente: ${profile.full_name || 'N/A'} — Contrato: ${profile.contract_number || 'N/A'}. Se ha enviado un correo de verificación con tus credenciales al email registrado en tu contrato. Revisa tu bandeja de entrada.`,
+        title: "Correo enviado",
+        description: `Cliente: ${data.full_name || 'N/A'} — Contrato: ${data.contract_number || 'N/A'}. Se ha enviado un enlace de acceso a ${data.masked_email}. Revisa tu bandeja de entrada o spam.`,
       });
     } catch (error) {
-      console.error('Error checking cedula:', error);
+      console.error('Error:', error);
       toast({ title: "Error", description: "Ocurrió un error al consultar. Intenta de nuevo.", variant: "destructive" });
     }
     setLoading(false);
