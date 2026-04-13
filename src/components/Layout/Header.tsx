@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { LogOut, Network } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import ProfileDialog from './ProfileDialog';
@@ -54,24 +54,13 @@ const Header = () => {
 
           {/* Admin shortcuts */}
           {isAdmin && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/network')}
-                className="hidden sm:flex text-xs text-muted-foreground hover:text-foreground gap-1.5 h-8"
-              >
-                <Network className="h-3.5 w-3.5" />
-                Red
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => navigate('/admin-home')}
-                className="hidden sm:flex text-xs h-8 shine"
-              >
-                Admin
-              </Button>
-            </>
+            <Button
+              size="sm"
+              onClick={() => navigate('/admin-home')}
+              className="hidden sm:flex text-xs h-8 shine"
+            >
+              Admin
+            </Button>
           )}
 
           {/* Logout */}
