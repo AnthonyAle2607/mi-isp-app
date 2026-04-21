@@ -11,14 +11,45 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, userContext } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Eres "Silvia", el Asistente Tecnico Virtual de Telecomunicaciones Silverdata. Tu objetivo es ayudar a los clientes a autogestionar y resolver problemas de su servicio de internet (FTTH/GPON y Radio Enlace). Eres amable, paciente y muy tecnica pero explicas las cosas de manera sencilla.
+    let clientDataBlock = '';
+    if (userContext) {
+      const billingDate = userContext.next_billing_date
+        ? new Date(userContext.next_billing_date).toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' })
+        : 'No definida';
+      const speedInfo = userContext.lastSpeedTest
+        ? `${userContext.lastSpeedTest.toFixed(1)} Mbps`
+        : 'No se ha realizado test de velocidad';
+      clientDataBlock = `
+
+===== DATOS DEL CLIENTE ACTUAL =====
+- Nombre completo: ${userContext.full_name || 'No disponible'}
+- Cedula: ${userContext.cedula_type || 'V'}-${userContext.cedula || 'No disponible'}
+- Contrato: ${userContext.contract_number || 'No asignado'}
+- Plan actual: ${userContext.plan_type || 'Sin plan'}
+- Tipo de conexion: ${userContext.connection_type === 'fibra' ? 'Fibra Optica' : 'Radio Enlace'}
+- Saldo pendiente: $${(userContext.pending_balance || 0).toFixed(2)}
+- Fecha de corte: ${billingDate}
+- Estado de cuenta: ${userContext.account_status || 'activo'}
+- IP asignada: ${userContext.ip_address || 'No asignada'}
+- Ultimo test de velocidad: ${speedInfo}
+
+INSTRUCCIONES SOBRE DATOS DEL CLIENTE:
+- Usa el PRIMER NOMBRE del cliente para dirigirte a el/ella de forma cercana.
+- Cuando el cliente pregunte por su saldo, fecha de corte, plan, velocidad, o datos de su cuenta, usa esta informacion directamente. No le pidas que consulte otro lugar.
+- Si el saldo pendiente es mayor a 0, recuerdale amablemente que tiene un saldo por pagar.
+- Si el estado de cuenta es 'suspended', informale que su servicio esta suspendido posiblemente por falta de pago.
+- Si pregunta por su velocidad y hay un test reciente, informa el resultado. Si no hay test, sugiere que ejecute uno desde el panel.
+=====`;
+    }
+
+    const systemPrompt = `Eres "Silvia", el Asistente Tecnico Virtual de Telecomunicaciones Silverdata. Tu objetivo es ayudar a los clientes a autogestionar y resolver problemas de su servicio de internet (FTTH/GPON y Radio Enlace). Eres amable, paciente y muy tecnica pero explicas las cosas de manera sencilla.${clientDataBlock}
 
 INFORMACION DE LA EMPRESA:
 - Nombre: Silverdata

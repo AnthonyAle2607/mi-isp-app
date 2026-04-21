@@ -284,6 +284,7 @@ const SpeedTest = ({ onTestComplete }: SpeedTestProps = {}) => {
       setProgress(100);
       setPhase('complete');
       onTestComplete?.(download);
+      window.dispatchEvent(new CustomEvent('speed-test-complete', { detail: { downloadSpeed: download } }));
       toast({ title: "Prueba completada", description: `↓ ${download.toFixed(1)} Mbps | ↑ ${upload.toFixed(1)} Mbps | ${Math.round(ping)} ms` });
     } catch (error) {
       console.error('Speed test error:', error);
