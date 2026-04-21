@@ -175,7 +175,7 @@ const SupportChatbot = () => {
     setInput("");
     setIsLoading(true);
     try {
-      await streamChat(newMessages.filter(m => !(m.role === 'assistant' && messages.indexOf(m) === 0 && messages.length >= 1)));
+      await streamChat(newMessages.slice(1));
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { role: "assistant", content: "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo o crea un ticket de soporte." }]);
