@@ -6,6 +6,7 @@ import { MessageCircle, Send, X, Bot, User, Loader2, Minimize2, Maximize2 } from
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/hooks/useAuth';
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -14,18 +15,52 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/customer-sup
 const SupportChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "¡Hola! 👋 Soy Silvia, tu asistente virtual de Silverdata. ¿En qué puedo ayudarte hoy?" }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [ticketCreated, setTicketCreated] = useState(false);
+  const [userContext, setUserContext] = useState<Record<string, any> | null>(null);
+  const [lastSpeedResult, setLastSpeedResult] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
   const WHATSAPP_LINK = "https://wa.me/+582128173500";
+
+  // Fetch user profile data for context
+  useEffect(() => {
+    const fetchContext = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, cedula, cedula_type, plan_type, contract_number, pending_balance, next_billing_date, connection_type, account_status, ip_address')
+        .eq('user_id', user.id)
+        .single();
+      if (data) {
+        setUserContext(data);
+        const name = data.full_name?.split(' ')[0] || 'Usuario';
+        setMessages([
+          { role: "assistant", content: `¡Hola, ${name}! 👋 Soy Silvia, tu asistente virtual de Silverdata. ¿En qué puedo ayudarte hoy?` }
+        ]);
+      } else {
+        setMessages([
+          { role: "assistant", content: "¡Hola! 👋 Soy Silvia, tu asistente virtual de Silverdata. ¿En qué puedo ayudarte hoy?" }
+        ]);
+      }
+    };
+    fetchContext();
+  }, [user]);
+
+  // Listen for speed test results
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      setLastSpeedResult(e.detail?.downloadSpeed ?? null);
+    };
+    window.addEventListener('speed-test-complete' as any, handler);
+    return () => window.removeEventListener('speed-test-complete' as any, handler);
+  }, []);
 
   const createTicketFromChat = async (ticketType: string, title: string, description: string) => {
     try {
@@ -87,7 +122,7 @@ const SupportChatbot = () => {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-      body: JSON.stringify({ messages: userMessages }),
+      body: JSON.stringify({ messages: userMessages, userContext: userContext ? { ...userContext, lastSpeedTest: lastSpeedResult } : undefined }),
     });
     if (!resp.ok || !resp.body) {
       const errorData = await resp.json().catch(() => ({}));
@@ -140,7 +175,7 @@ const SupportChatbot = () => {
     setInput("");
     setIsLoading(true);
     try {
-      await streamChat(newMessages.filter(m => m.content !== "¡Hola! 👋 Soy Silvia, tu asistente virtual de Silverdata. ¿En qué puedo ayudarte hoy?"));
+      await streamChat(newMessages.filter(m => !(m.role === 'assistant' && messages.indexOf(m) === 0 && messages.length >= 1)));
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { role: "assistant", content: "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo o crea un ticket de soporte." }]);
